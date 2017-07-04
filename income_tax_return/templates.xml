@@ -810,6 +810,7 @@
                                             <field name="tax_computation_ftr_id">
                                                 <tree editable="bottom">
                                                     <field name="description"/>
+                                                    <field name="receipt_type"/>
                                                     <field name="amount" sum="Total"/>
                                                     <field name="rate"/>
                                                     <field name="tax" sum="Total"/>
@@ -821,6 +822,16 @@
                                                 <tree editable="bottom">
                                                     <field name="description"/>
                                                     <field name="tax_type"/>
+                                                    <field name="amount" sum="Total"/>
+                                                </tree>
+                                            </field>
+
+                                            <group name="tax_exempt" string="Exempt Income">
+                                            </group>
+                                            <field name="tax_computation_exempt_id">
+                                                <tree editable="bottom">
+                                                    <field name="description"/>
+                                                    <field name="sub_type"/>
                                                     <field name="amount" sum="Total"/>
                                                 </tree>
                                             </field>
@@ -864,6 +875,48 @@
                                                 </tree>
                                             </field>
                                         </page>
+
+                                        <page string="Tax Computing" colspan="4">
+                                            <group name="tax_sub_type" string="Tax Computation" col="2">
+                                                <field name="tc_salary"/>
+                                                <field name="tc_business"/>
+                                                <field name="tc_property"/>
+                                                <field name="tc_other_sources"/>
+                                                <field name="tc_cgt"/>
+                                                <field name="tc_for_remit"/>
+                                                <field name="tc_arg_in"/>
+                                                <field name="tc_total_income"/>
+                                                <field name="tc_less_exempt"/>
+                                                <field name="tc_less_ftr"/>
+                                                <field name="tc_less_cap_gain"/>
+                                                <field name="tc_ntr"/>
+                                                <field name="tc_tax_liabilty"/>
+                                                <field name="tc_tax_already_ded"/>
+                                                <field name="tc_tax_pay_refund"/>
+                                                <field name="tc_tax_charge_ftr"/>
+                                                <field name="tc_tax_deduct_ftr"/>
+                                                <field name="tc_income_from_prp"/>
+                                                <field name="tc_less_ded_allowed"/>
+                                                <field name="tc_taxable_ifd"/>
+                                                <field name="tc_tax_liability_ifd"/>
+                                                <field name="tc_capital_gain"/>
+                                                <field name="tc_less"/>
+                                                <field name="tc_exmt_cg"/>
+                                                <field name="tc_balnc_taxable"/>
+                                                <field name="tc_tax_pay_cg"/>
+                                                <field name="tc_tax_paid_cg"/>
+                                                <field name="tc_ttl_ntr"/>
+                                                <field name="tc_ttl_ftr"/>
+                                                <field name="tc_ttl_sbi"/>
+                                                <field name="tc_total_tax_lib"/>
+                                                <field name="tc_ttd_ntr"/>
+                                                <field name="tc_ttd_ftr"/>
+                                                <field name="tc_ttd_sbi"/>
+                                                <field name="tc_total_tax_ded"/>
+                                                <field name="tc_final_pay_refund"/>
+                                            </group>
+                                        </page>
+
                                 </notebook>
                             </sheet>
                         </form>

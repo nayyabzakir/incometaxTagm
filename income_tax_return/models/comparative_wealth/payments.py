@@ -37,8 +37,6 @@ class payments(models.Model):
 
 	tax_type    = fields.Selection([
         ('adjustable', 'Adjustable'),
-        ('non_adjustable', 'Non Adjustable'),
-        ('expense', 'Expense'),
         ('minimum', 'Minimum'),
 		('tax_ftr', 'Tax FTR'),
 		('deductible_allowance', 'Deductible Allowance')

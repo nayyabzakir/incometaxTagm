@@ -13,10 +13,13 @@ class tax_deduct(models.Model):
 	amount      = fields.Float()
 	tax_type    = fields.Selection([
         ('adjustable', 'Adjustable'),
-        ('non_adjustable', 'Non Adjustable'),
         ('minimum', 'Minimum'),
 		('tax_ftr', 'Tax FTR'),
+		('deductible_allowance', 'Deductible Allowance')
         ])
 
 	tax_deduct_id = fields.Many2one('tax.computation',
-        ondelete='cascade', required=True)
+        ondelete='cascade')
+
+	payments_id = fields.Many2one('payments',
+        ondelete='cascade', string="Payments")

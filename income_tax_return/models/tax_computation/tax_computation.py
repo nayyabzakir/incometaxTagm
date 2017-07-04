@@ -33,35 +33,55 @@ class tax_computation(models.Model):
 	tax_ratio               = fields.Float(string="Tax Payable/ (Refundable)")
 	rebate                  = fields.Float()
 	admitted_tax            = fields.Float(string="Admitted Tax")
-	# total_sale              = fields.Float(string="Total Sales")
-	# sale_under_ntr          = fields.Float(string="NTR Sales")
-	# sale_under_ftr          = fields.Float(string="FTR/Exempt Sales")
-	# ntr_income              = fields.Float(string="NTR Revenue")
-	# purchases               = fields.Float(string="Purchases")
-	# opening                 = fields.Float(string="Add: Opening")
-	# closing                 = fields.Float(string="Less: Closing")
-	# cost_of_sales			= fields.Float(string="Cost of Sales")
-	# gross_profit			= fields.Float(string="Gross Profit")
-	# ntr_expense             = fields.Float(string="NTR Expense")
-	# ntr_profit_Loss         = fields.Float(string="NTR Profit/Loss")
-	# accounting_depreciation = fields.Float(string="Acc Depreciation")
-	# inadmissible_expenses   = fields.Float(string="In admissible Expenses")
-	# tax_depreciation	    = fields.Float(string="Tax Depreciation")
-	# tax_profit              = fields.Float(string="Tax Profit")
 	income_under_ftr        = fields.Float(string="Income under FTR")
 	tax_deduct              = fields.Float(string="Tax deducted")
-	# description             = fields.Text()
-	# amount                  = fields.Float()
-
 	tax_computation_ntr_id        = fields.One2many('income.under.ntr', 'income_under_ntr_id')
 	tax_computation_deductible_id = fields.One2many('deductible.allowance', 'deductible_allowance_id')
 	tax_credits_id                = fields.One2many('tax.credits', 'tax_credits_id')
 	tax_rebate_id                 = fields.One2many('income.rebate', 'income_rebate_id')
 	tax_computation_ftr_id        = fields.One2many('income.under.ftr', 'income_under_ftr_id')
 	tax_deduct_link_id            = fields.One2many('tax.deduct', 'tax_deduct_id')
-	# profit_loss_link_id           = fields.One2many('profit_loss.profit_loss', 'profit_loss_id')
-
+	tax_computation_exempt_id     = fields.One2many('income.under.exempt', 'income_under_exempt_id')
 	pnl_computation           = fields.One2many('pnl.computation.workbook', 'tax_computation_id')
+	
+
+	tc_salary           = fields.Float(string="Salary")
+	tc_business         = fields.Float(string="Business")
+	tc_property         = fields.Float(string="Property")
+	tc_other_sources    = fields.Float(string="Other Sources")
+	tc_cgt           	= fields.Float(string="CGT")
+	tc_for_remit        = fields.Float(string="Foreign Remittance")
+	tc_arg_in           = fields.Float(string="Agricultural Income")
+	tc_total_income     = fields.Float(string="Total Income")
+	tc_less_exempt		= fields.Float(string="Less Exempt")
+	tc_less_ftr			= fields.Float(string="Less FTR")
+	tc_less_cap_gain    = fields.Float(string="Less Capital Gain")
+	tc_ntr 				= fields.Float(string="NTR")
+	tc_tax_liabilty		= fields.Float(string="Tax Liability Under NTR")
+	tc_tax_already_ded	= fields.Float(string="Tax Already Deducted")
+	tc_tax_pay_refund	= fields.Float(string="Net Tax Payable / (Refundable)")
+	tc_tax_charge_ftr	= fields.Float(string="Tax Chargable under FTR ")
+	tc_tax_deduct_ftr	= fields.Float(string="Tax Deducted under FTR ")
+	tc_income_from_prp	= fields.Float(string="Income From Property ")
+	tc_less_ded_allowed	= fields.Float(string="Less Deduction Allowed ")
+	tc_taxable_ifd		= fields.Float(string="Taxable Income From Property")
+	tc_tax_liability_ifd= fields.Float(string="Tax Liability From Property")
+	tc_capital_gain	    = fields.Float(string="Capital Gain")
+	tc_less				= fields.Float(string="Less:")
+	tc_exmt_cg			= fields.Float(string="Exempt Capital Gain ")
+	tc_balnc_taxable	= fields.Float(string="Balance Taxable")
+	tc_tax_pay_cg		= fields.Float(string="Tax Payable on Capital Gain")
+	tc_tax_paid_cg		= fields.Float(string="Tax Paid on Capital Gain")
+	tc_ttl_ntr			= fields.Float(string="NTR")
+	tc_ttl_ftr			= fields.Float(string="FTR")
+	tc_ttl_sbi			= fields.Float(string="Separate Block Income")
+	tc_total_tax_lib	= fields.Float(string="Total Tax Liability")
+	tc_ttd_ntr			= fields.Float(string="NTR")
+	tc_ttd_ftr			= fields.Float(string="FTR")
+	tc_ttd_sbi			= fields.Float(string="Separate Block Income")
+	tc_total_tax_ded	= fields.Float(string="Total Tax Deducted")
+	tc_final_pay_refund	= fields.Float(string="Net Tax Payable / (Refundable)")
+
 
 
 	@api.model
@@ -96,12 +116,20 @@ class tax_computation(models.Model):
 	def _onchange_tax_deduct(self):
 		self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type=='adjustable')
 		self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type=='minimum')
-		
+
+		@api.onchange('tc_salary','tc_business','tc_property','tc_other_sources','tc_cgt','tc_for_remit','tc_arg_in')
+		def _onchange_sub_types(self):
+			self.tc_total_income=self.tc_salary+self.tc_business+self.tc_property+self.tc_other_sources+self.tc_cgt+self.tc_for_remit+self.tc_arg_in
+			
+		@api.onchange('tc_total_income','tc_less_exempt','tc_less_ftr')
+		def _onchange_tc_total_income(self):
+			self.tc_ntr = self.tc_total_income - (self.tc_less_exempt + self.tc_less_ftr)
+
+
 	@api.onchange('income_under_ntr','rebate','tax_rate','deductible_allowance','tax_credits','fixed_tax','portion_of_minimum_tax','tax_adjust','tax_deduct_min','refund_adjust')
 	def onchange_assesment_form_field(self):
 		self.taxable_income = self.income_under_ntr - self.deductible_allowance
 		self.tax_liability  = (self.taxable_income * self.tax_rate) + self.fixed_tax
-		 
 		self.total_tax      = self.payable_tax - self.tax_adjust
 		self.total_tax      = self.total_tax - self.tax_deduct_min
 		self.tax_ratio      = self.total_tax - self.refund_adjust - self.tax_credits
@@ -118,96 +146,6 @@ class tax_computation(models.Model):
 		self.tax_deduct_link_id.unlink()
 		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
-		for y in self:
-			# for x in required_class.wealth_reconciliation_income_ids:
-			# 	dic = {
-			# 	x.y2005 : '2005',
-			# 	x.y2006 : '2006',
-			# 	x.y2007 : '2007',
-			# 	x.y2008 : '2008',
-			# 	x.y2009 : '2009',
-			# 	x.y2010 : '2010',
-			# 	x.y2011 : '2011',
-			# 	x.y2012 : '2012',
-			# 	x.y2013 : '2013',
-			# 	x.y2014 : '2014',
-			# 	x.y2015 : '2015',
-			# 	x.y2016 : '2016',
-			# 	x.y2017 : '2017',
-			# 	x.y2018 : '2018',
-			# 	x.y2019 : '2019',
-			# 	x.y2020 : '2020',
-			# 	}
-			# 	for key, value in dic.iteritems():
-			# 		if x.receipt_type != 'ftr' and dic[key] == self.tax_year.code:
-			# 			y.tax_computation_ntr_id.create({
-			# 				'description' : x.description,
-			# 				'tax_type':x.receipt_type,
-			# 				'amount':key,
-			# 				'income_under_ntr_id': y.id,
-			# 				})
-			# 		elif x.receipt_type == 'ftr' and dic[key] == self.tax_year.code:
-
-			# 			y.tax_computation_ftr_id.create({
-			# 				'description' : x.description,
-			# 				'amount':key,
-			# 				'income_under_ftr_id': y.id,
-			# 				})
-			# for x in required_class.cash_receipts_ids:
-			# 	dic = {
-			# 	x.y2005 : '2005',
-			# 	x.y2006 : '2006',
-			# 	x.y2007 : '2007',
-			# 	x.y2008 : '2008',
-			# 	x.y2009 : '2009',
-			# 	x.y2010 : '2010',
-			# 	x.y2011 : '2011',
-			# 	x.y2012 : '2012',
-			# 	x.y2013 : '2013',
-			# 	x.y2014 : '2014',
-			# 	x.y2015 : '2015',
-			# 	x.y2016 : '2016',
-			# 	x.y2017 : '2017',
-			# 	x.y2018 : '2018',
-			# 	x.y2019 : '2019',
-			# 	x.y2020 : '2020',
-			# 	}
-			# 	for key, value in dic.iteritems():
-			# 		y.tax_computation_ntr_id.create({
-			# 			'description' : x.description,
-			# 			'tax_type':x.tax_type,
-			# 			'receipt_type':x.receipt_type,
-			# 			'amount':key,
-			# 			'income_under_ntr_id': y.id,
-			# 			'receipts_id': x.id,
-			# 				})
-			for x in required_class.wealth_reconciliation_expense_ids:
-				dic = {
-				x.y2005 : '2005',
-				x.y2006 : '2006',
-				x.y2007 : '2007',
-				x.y2008 : '2008',
-				x.y2009 : '2009',
-				x.y2010 : '2010',
-				x.y2011 : '2011',
-				x.y2012 : '2012',
-				x.y2013 : '2013',
-				x.y2014 : '2014',
-				x.y2015 : '2015',
-				x.y2016 : '2016',
-				x.y2017 : '2017',
-				x.y2018 : '2018',
-				x.y2019 : '2019',
-				x.y2020 : '2020',
-				}
-				for key, value in dic.iteritems():
-					if x.receipt_type != 'expense' and dic[key] == self.tax_year.code:
-						y.tax_deduct_link_id.create({
-							'description' : x.description,
-							'tax_type':x.receipt_type,
-							'amount':key,
-							'tax_deduct_id': y.id,
-							})
 		self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
 		self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
 		self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
@@ -218,7 +156,28 @@ class tax_computation(models.Model):
 		self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
 		self.createIncomeUNTR()
 		self.createIncomeUFTR()
+		self.createTaxDeducted()
+		self.createIncomeUExempt()
 		self.createDedAllowance()
+		self.getTaxCompDetails()
+
+
+	def getTaxCompDetails(self):
+		self.tc_salary =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sal') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='sal') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='sal')
+		self.tc_business =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='bus') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='bus') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='bus')
+		self.tc_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
+		self.tc_other_sources =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='oth_sour')
+		self.tc_cgt =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='cgt')
+		self.tc_for_remit =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='foreign_remit')
+		self.tc_arg_in =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='arg_in') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='arg_in') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='arg_in')
+		self.tc_total_income=self.tc_salary+self.tc_business+self.tc_property+self.tc_other_sources+self.tc_cgt+self.tc_for_remit+self.tc_arg_in
+		self.tc_less_exempt =   sum(line.amount for line in self.tax_computation_exempt_id)
+		self.tc_less_ftr =  sum(line.amount for line in self.tax_computation_ftr_id)
+		self.tc_ntr = self.tc_total_income - (self.tc_less_exempt + self.tc_less_ftr)
+		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded
+
+
+
 
 	def createIncomeUNTR(self):
 		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
@@ -229,7 +188,7 @@ class tax_computation(models.Model):
 			if line.tax_type == 'ntr':
 				new_ntr_id = self.tax_computation_ntr_id.create({
 					'description' : line.description,
-					'receipt_type' : line.receipt_type,
+					'receipt_type' : line.sub_type,
 					'receipts_id': line.id,
 					'sub_tax_type' : 'nor',
 					'income_under_ntr_id': self.id
@@ -238,10 +197,10 @@ class tax_computation(models.Model):
 			elif line.tax_type == 'minimum':
 				new_min_id = self.tax_computation_ntr_id.create({
 					'description' : line.description,
-					'receipt_type' : line.receipt_type,
+					'receipt_type' : line.sub_type,
 					'receipts_id': line.id,
 					'sub_tax_type' : 'min',
-					'income_under_ntr_id' : self.id
+					'income_under_ntr_id' : self.id,
 					})
 				self.env.cr.execute("UPDATE income_under_ntr b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_min_id.id)+"")
 
@@ -255,9 +214,43 @@ class tax_computation(models.Model):
 				new_ftr_id = self.tax_computation_ftr_id.create({
 					'description' : line.description,
 					'receipts_id': line.id,
-					'income_under_ftr_id': self.id
+					'receipt_type' : line.sub_type,
+					'income_under_ftr_id': self.id,
 					})
 				self.env.cr.execute("UPDATE income_under_ftr b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_ftr_id.id)+"")
+
+
+	def createIncomeUExempt(self):
+		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+
+		self.tax_computation_exempt_id.unlink()
+		year = 'y'+str(self.tax_year.code)
+		for line in required_class.cash_receipts_ids:
+			if line.tax_type == 'exempt':
+				new_exempt_id = self.tax_computation_exempt_id.create({
+					'description' : line.description,
+					'receipts_id': line.id,
+					'sub_type': line.sub_type,
+					'income_under_exempt_id': self.id,
+					})
+				self.env.cr.execute("UPDATE income_under_exempt b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_exempt_id.id)+"")
+
+
+	def createTaxDeducted(self):
+		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+
+		self.tax_deduct_link_id.unlink()
+		year = 'y'+str(self.tax_year.code)
+		for line in required_class.cash_payments_ids:
+			if line.tax_type:
+				new_taxded_id = self.tax_deduct_link_id.create({
+					'description' : line.description,
+					'payments_id': line.id,
+					'tax_deduct_id': self.id,
+					'tax_type':line.tax_type,
+					})
+				self.env.cr.execute("UPDATE tax_deduct b SET    amount = a."+year+" FROM   payments a WHERE  b.payments_id = a.id and b.id = "+str(new_taxded_id.id)+"")
+
 
 	def createDedAllowance(self):
 		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
@@ -272,8 +265,6 @@ class tax_computation(models.Model):
 				'payment_id': line.id,
 				})
 			self.env.cr.execute("UPDATE deductible_allowance b SET    amount = a."+year+" FROM   payments a WHERE  b.payment_id = a.id")
-
-
 
 
 	@api.multi
@@ -330,25 +321,6 @@ class tax_computation(models.Model):
 					tax_amount = taxable_amount * x.rate_of_tax/100
 					virtual_liability = tax_amount + x.fixed_tax_amount
 					self.portion_of_minimum_tax = self.tax_liability - virtual_liability
-
-	# @api.multi
-	# def update(self):
-	# 	if self.total_sale != 0:
-	# 		ntr_ratio = self.sale_under_ntr / self.total_sale
-	# 		ftr_ratio = self.sale_under_ftr / self.total_sale
-
-	# 		for x in self.profit_loss_link_id:
-	# 			x.ntr =  x.total * ntr_ratio
-	# 			x.ftr_exempt =  x.total * ftr_ratio
-	# 	self.ntr_income =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='income')
-	# 	self.purchases =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='direct_expenses' and line.admissible == 'admissible')
-	# 	self.cost_of_sales =  self.purchases + self.opening - self.closing
-	# 	self.gross_profit = self.ntr_income - self.cost_of_sales
-	# 	self.accounting_depreciation =  sum(line.ntr for line in self.profit_loss_link_id if line.admissible =='depreciation')
-	# 	self.ntr_expense =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible')
-	# 	self.inadmissible_expenses =  sum(line.ntr for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
-	# 	self.ntr_profit_Loss = self.gross_profit - self.ntr_expense
-	# 	self.tax_profit = self.ntr_profit_Loss + self.accounting_depreciation - self.inadmissible_expenses - self.tax_depreciation
 
 	@api.onchange('client_name','tax_year')
 	def _get_comparative(self):
