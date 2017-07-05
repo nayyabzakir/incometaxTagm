@@ -991,6 +991,32 @@
                                                     </tree>
                                                 </field>
                                             <!-- Workbook-"Salaried Individuals"-ENDS -->
+
+                                            <!-- Workbook-"Income From Property"-START -->
+                                                <group name="income_from_property" string="Income From Property">
+                                                </group>
+                                                <field name="income_from_property_ids" nolabel='1'>
+                                                    <tree editable="bottom">
+                                                        <field name="amount_from"/>
+                                                        <field name="amount_to"/>
+                                                        <field name="fixed_tax_amount"/>
+                                                        <field name="rate_of_tax"/>
+                                                    </tree>
+                                                </field>
+                                            <!-- Workbook-"Income From Property"-ENDS -->
+
+                                            <!-- Workbook-"Capital Gain on Disposal of Securities"-START -->
+                                                <group name="cg_dis_securities" string="Capital Gain on Disposal of Securities">
+                                                </group>
+                                                <field name="securities_disposal_ids" nolabel='1'>
+                                                    <tree editable="bottom">
+                                                        <field name="period"/>
+                                                        <field name="y2015"/>
+                                                        <field name="y2016"/>
+                                                        <field name="y2017"/>
+                                                    </tree>
+                                                </field>
+                                            <!-- Workbook-"Capital Gain on Disposal of Securities"-ENDS -->
                                         </page>
                                     <!-- Page-"Tax Rates"-ENDS -->
                                 </notebook>
