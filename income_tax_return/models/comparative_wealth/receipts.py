@@ -49,11 +49,11 @@ class receipts(models.Model):
             ])
 	tax_type = fields.Selection([
 		('ntr', 'NTR'),
-		('taxable', 'Taxable'),
+		# ('taxable', 'Taxable'),
         ('exempt', 'Exempt'),
         ('ftr', 'FTR'),
         ('minimum', 'Minimum'),
-        ('salary', 'Salary'),
+        # ('salary', 'Salary'),
         ])
 
 	receipts_id = fields.Many2one('comparative.wealth',

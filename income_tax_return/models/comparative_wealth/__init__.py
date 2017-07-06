@@ -13,3 +13,4 @@ from . import closing1
 from . import closing2
 from . import capital_working
 from . import balance_sheet
+from . import deductable_allowance

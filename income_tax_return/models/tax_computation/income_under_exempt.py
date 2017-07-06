@@ -11,17 +11,18 @@ class income_under_exempt(models.Model):
 	description = fields.Char()
 	amount      = fields.Float()
 	sub_type = fields.Selection([
-            ('sal', 'Salary'),
-            ('bus', 'Business'),
-            ('property', 'Property'),
-            ('oth_sour', 'Other Sources'),
-            ('cgt', 'CGT'),
-            ('foreign_remit', 'Foreign Remittance'),
-            ('arg_in', 'Agricultural Income'),
-            ])
+			('sal', 'Salary'),
+			('bus', 'Business'),
+			('property', 'Property'),
+			('oth_sour', 'Other Sources'),
+			('cgt', 'CGT'),
+			('foreign_remit', 'Foreign Remittance'),
+			('arg_in', 'Agricultural Income'),
+			])
 	
 	income_under_exempt_id = fields.Many2one('tax.computation',ondelete='cascade')
 
 
 	receipts_id = fields.Many2one('receipts',
-        ondelete='cascade', string="Receipts")
+		ondelete='cascade', string="Receipts")
+	pnl_id = fields.Many2one('pnl.computation', ondelete='cascade', string="PNL Computation ID")

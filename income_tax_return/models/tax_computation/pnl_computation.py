@@ -6,6 +6,10 @@ class business_name(models.Model):
 	_name = 'business.name'
 	name  = fields.Char('Name')
 	customer = fields.Many2one('res.partner', 'Customer')
+	business_type = fields.Selection([
+            ('aop', 'AOP'),
+            ('sp', 'Sole Proprietor'),
+            ], string="Business Type")
 
 class pnl_computation(models.Model):
 	_name = 'pnl.computation'

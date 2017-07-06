@@ -9,13 +9,9 @@ class deductible_allowance(models.Model):
 	_name = 'deductible.allowance'
 
 	description = fields.Char()
+	deductible_allowance_ids = fields.Many2one('deductable.allowance','Dedutable Allowance')
 	amount      = fields.Float()
-	rate        = fields.Float()
-	tax         = fields.Float()
-
-	@api.onchange('amount','rate')
-	def _onchange_ftr_vals(self):
-		self.tax = self.amount * self.rate
+	ded_allowed        = fields.Float()
 
 	deductible_allowance_id = fields.Many2one('tax.computation',ondelete='cascade', required=True)
 	payment_id = fields.Many2one('payments',

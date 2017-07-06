@@ -10,7 +10,7 @@ class income_under_ftr(models.Model):
 
 	description = fields.Char()
 	amount      = fields.Float()
-	rate        = fields.Float()
+	rate        = fields.Many2one('final_tax.final_tax')
 	tax         = fields.Float()
 	receipt_type = fields.Selection([
 		('ncr', 'Non Cash'),
@@ -28,10 +28,13 @@ class income_under_ftr(models.Model):
 		])
 	@api.onchange('amount','rate')
 	def _onchange_ftr_vals(self):
-		self.tax = self.amount * self.rate
+		self.tax = self.amount * self.rate.rate
 
 	income_under_ftr_id = fields.Many2one('tax.computation',ondelete='cascade')
 
 
 	receipts_id = fields.Many2one('receipts',
         ondelete='cascade', string="Receipts")
+
+	pnl_id = fields.Many2one('pnl.computation',
+        ondelete='cascade', string="PNL Computation ID")

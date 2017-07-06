@@ -6,3 +6,4 @@ from . import tax_rates_table
 from . import capital_gain
 from . import res_partner_extension
 from . import non_cash_reciepts
+from . import final_tax

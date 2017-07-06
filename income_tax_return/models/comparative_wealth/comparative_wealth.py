@@ -687,7 +687,6 @@ class comparative_wealth(models.Model):
 			 			if not self.cash_receipts_ids.search([('description','=','Drawing '+rec.business_name.name.name)]):
 							new_reciept = self.cash_receipts_ids.create({
 								'description' : 'Drawing '+rec.business_name.name.name,
-								'tax_type' : 'taxable',
 								'receipts_id' : self.id,
 								})
 							if line.tax_year:

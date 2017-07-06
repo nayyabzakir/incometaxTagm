@@ -40,3 +40,6 @@ class income_under_ntr(models.Model):
 
 	receipts_id = fields.Many2one('receipts',
         ondelete='cascade', string="Receipts")
+
+	pnl_id = fields.Many2one('pnl.computation',
+        ondelete='cascade', string="PNL Computation ID")

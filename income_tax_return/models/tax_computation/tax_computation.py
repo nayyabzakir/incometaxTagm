@@ -55,7 +55,11 @@ class tax_computation(models.Model):
 	tc_total_income     = fields.Float(string="Total Income")
 	tc_less_exempt		= fields.Float(string="Less Exempt")
 	tc_less_ftr			= fields.Float(string="Less FTR")
+	tc_ftr_exempt_diff	= fields.Float(string="Total")
+	tc_less_ded_allowed	= fields.Float(string="Less Deductable Allowance ")
+	tc_fe_ded_diff		= fields.Float(string="Total")
 	tc_less_cap_gain    = fields.Float(string="Less Capital Gain")
+	tc_less_property    = fields.Float(string="Less Property")
 	tc_ntr 				= fields.Float(string="NTR")
 	tc_tax_liabilty		= fields.Float(string="Tax Liability Under NTR")
 	tc_tax_already_ded	= fields.Float(string="Tax Already Deducted")
@@ -63,11 +67,9 @@ class tax_computation(models.Model):
 	tc_tax_charge_ftr	= fields.Float(string="Tax Chargable under FTR ")
 	tc_tax_deduct_ftr	= fields.Float(string="Tax Deducted under FTR ")
 	tc_income_from_prp	= fields.Float(string="Income From Property ")
-	tc_less_ded_allowed	= fields.Float(string="Less Deduction Allowed ")
 	tc_taxable_ifd		= fields.Float(string="Taxable Income From Property")
 	tc_tax_liability_ifd= fields.Float(string="Tax Liability From Property")
 	tc_capital_gain	    = fields.Float(string="Capital Gain")
-	tc_less				= fields.Float(string="Less:")
 	tc_exmt_cg			= fields.Float(string="Exempt Capital Gain ")
 	tc_balnc_taxable	= fields.Float(string="Balance Taxable")
 	tc_tax_pay_cg		= fields.Float(string="Tax Payable on Capital Gain")
@@ -81,6 +83,20 @@ class tax_computation(models.Model):
 	tc_ttd_sbi			= fields.Float(string="Separate Block Income")
 	tc_total_tax_ded	= fields.Float(string="Total Tax Deducted")
 	tc_final_pay_refund	= fields.Float(string="Net Tax Payable / (Refundable)")
+
+	tc_sca 				= fields.Boolean(string="Senior Citizen Allowance")
+	tc_fta 				= fields.Boolean(string="Full time Teacher Allowance")
+	tc_ftc 				= fields.Boolean(string="Foreign Tax Credit")
+	tc_donations		= fields.Boolean(string="Donations")
+	tc_inv_shares		= fields.Boolean(string="Investment in Shares")
+	tc_inv_hi			= fields.Boolean(string="Investment on Health Insurance")
+	tc_capf				= fields.Boolean(string="Contribution to approved pension fund")
+	tc_rusta			= fields.Boolean(string="Registration under Sales Tax Act ")
+	tc_emp_gen			= fields.Boolean(string="Employment Generation")
+	tc_inv_plnmach		= fields.Boolean(string="Investment in Plant and Machinery")
+	tc_enlistment		= fields.Boolean(string="Enlistment")
+	tc_ind_eqtinv		= fields.Boolean(string="Industrial underetakings [Equity Investment]")
+	tc_ind_plnmach		= fields.Boolean(string="Industrial underetakings [Plant and Machinery]")
 
 
 
@@ -160,12 +176,14 @@ class tax_computation(models.Model):
 		self.createIncomeUExempt()
 		self.createDedAllowance()
 		self.getTaxCompDetails()
+		self.getBusinessProfit()
 
 
 	def getTaxCompDetails(self):
 		self.tc_salary =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sal') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='sal') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='sal')
 		self.tc_business =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='bus') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='bus') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='bus')
 		self.tc_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
+		self.tc_less_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
 		self.tc_other_sources =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='oth_sour')
 		self.tc_cgt =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='cgt')
 		self.tc_for_remit =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='foreign_remit')
@@ -173,9 +191,59 @@ class tax_computation(models.Model):
 		self.tc_total_income=self.tc_salary+self.tc_business+self.tc_property+self.tc_other_sources+self.tc_cgt+self.tc_for_remit+self.tc_arg_in
 		self.tc_less_exempt =   sum(line.amount for line in self.tax_computation_exempt_id)
 		self.tc_less_ftr =  sum(line.amount for line in self.tax_computation_ftr_id)
-		self.tc_ntr = self.tc_total_income - (self.tc_less_exempt + self.tc_less_ftr)
+		self.tc_ntr = self.tc_total_income - (self.tc_less_exempt + self.tc_less_ftr) - self.tc_less_cap_gain - self.tc_less_property
+		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable')
 		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded
+		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id)
+		self.tc_ftr_exempt_diff =  self.tc_total_income - self.tc_less_exempt - self.tc_less_ftr
+		self.tc_fe_ded_diff =  self.tc_ftr_exempt_diff - self.tc_less_ded_allowed
 
+	def getBusinessProfit(self):
+		if self.pnl_computation:
+			for line in self.pnl_computation:
+				################### Records Creation For Income Under NTR #################
+				if line.business_name.name.business_type == 'sp':
+					ntr_id = self.tax_computation_ntr_id.search([('pnl_id','=',line.id)])
+					if not ntr_id:
+						self.tax_computation_ntr_id.create({
+							'description' : "Profit for "+line.business_name.name.name,
+							'receipt_type' : "bus",
+							'sub_tax_type' : 'nor',
+							'tax_type' : 'ntr',
+							'income_under_ntr_id': self.id,
+							'amount' : line.business_name.tax_profit,
+							'pnl_id' : line.id
+							})
+					else:
+						ntr_id.description = "Profit for "+line.business_name.name.name
+						ntr_id.amount = line.business_name.tax_profit
+					################### Records Creation For Income Under FTR #################
+					ftr_id = self.tax_computation_ftr_id.search([('pnl_id','=',line.id)])
+					if not ftr_id:
+						self.tax_computation_ftr_id.create({
+							'description' : "Profit for "+line.business_name.name.name,
+							'receipt_type' : "bus",
+							'income_under_ftr_id': self.id,
+							'amount' : line.business_name.ftr_tax_profit,
+							'pnl_id' : line.id
+							})
+					else:
+						ftr_id.description = "Profit for "+line.business_name.name.name
+						ftr_id.amount = line.business_name.ftr_tax_profit
+				################### Records Creation For Exempt  Income #################
+				elif line.business_name.name.business_type == 'aop':
+					exempt_id = self.tax_computation_exempt_id.search([('pnl_id','=',line.id)])
+					if not exempt_id:
+						self.tax_computation_exempt_id.create({
+							'description' : "Profit for "+line.business_name.name.name,
+							'sub_type' : "bus",
+							'income_under_exempt_id': self.id,
+							'amount' : line.business_name.tax_profit,
+							'pnl_id' : line.id
+							})
+					else:
+						exempt_id.description = "Profit for "+line.business_name.name.name
+						exempt_id.amount = line.business_name.tax_profit
 
 
 
@@ -262,9 +330,10 @@ class tax_computation(models.Model):
 			self.tax_computation_deductible_id.create({
 				'description' : line.description,
 				'deductible_allowance_id': self.id,
+				'deductible_allowance_ids': line.deductible_allowance_ids.id,
 				'payment_id': line.id,
 				})
-			self.env.cr.execute("UPDATE deductible_allowance b SET    amount = a."+year+" FROM   payments a WHERE  b.payment_id = a.id")
+			self.env.cr.execute("UPDATE deductible_allowance b SET    amount = a."+year+" , ded_allowed= a."+year+"  FROM   payments a WHERE  b.payment_id = a.id")
 
 
 	@api.multi

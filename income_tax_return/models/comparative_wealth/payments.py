@@ -34,6 +34,8 @@ class payments(models.Model):
             ('asset', 'Asset'),
             ('loan_repayment', 'Loan Repayment'),
             ])
+	
+	deductible_allowance_ids = fields.Many2one('deductable.allowance','Dedutable Allowance')
 
 	tax_type    = fields.Selection([
         ('adjustable', 'Adjustable'),

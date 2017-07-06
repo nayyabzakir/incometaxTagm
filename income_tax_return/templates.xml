@@ -249,22 +249,14 @@
                                                         class="oe_highlight"
                                                         help="Push the Assets to Assets field"/>
                                                 </group>
-                                                <field name="cash_payments_id" attrs="{'invisible': [('all_years', '==', True)]}"  nolabel='1'>
-                                                    <tree editable="bottom">
-                                                        <field name="sequence" widget="handle" />
-                                                        <field name="description"/>
-                                                        <field name="receipt_type" string="Type"/>
-                                                        <field name="tax_type" string="Tax Type"/>
-                                                        <field name="y2016" sum="Total"/>
-                                                        <field name="y2015" sum="Total"/>
-                                                    </tree>
-                                                </field>
-                                                <!--  -->
+ 
+
                                                 <field name="cash_payments_ids" attrs="{'invisible': [('all_years', '!=', True)]}"  nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
                                                         <field name="description"/>
                                                         <field name="receipt_type" string="Type"/>
+                                                        <field name="deductible_allowance_ids"/>
                                                         <field name="tax_type" string="Tax Type"/>
 <!--                                                         <field name="y2011" sum="Total"/>
                                                         <field name="y2012" sum="Total"/>
@@ -780,9 +772,9 @@
                                             <field name="tax_computation_deductible_id">
                                                 <tree editable="bottom">
                                                     <field name="description"/>
+                                                    <field name="deductible_allowance_ids"/>
                                                     <field name="amount" sum="Total"/>
-                                                    <field name="rate"/>
-                                                    <field name="tax" sum="Total"/>
+                                                    <field name="ded_allowed"/>
                                                 </tree>
                                             </field>
                                             <group name="tax_credits_id" string="Tax Credits">
@@ -888,7 +880,11 @@
                                                 <field name="tc_total_income"/>
                                                 <field name="tc_less_exempt"/>
                                                 <field name="tc_less_ftr"/>
+                                                <field name="tc_ftr_exempt_diff"/>
+                                                <field name="tc_less_ded_allowed"/>
+                                                <field name="tc_fe_ded_diff"/>
                                                 <field name="tc_less_cap_gain"/>
+                                                <field name="tc_less_property"/>
                                                 <field name="tc_ntr"/>
                                                 <field name="tc_tax_liabilty"/>
                                                 <field name="tc_tax_already_ded"/>
@@ -896,11 +892,9 @@
                                                 <field name="tc_tax_charge_ftr"/>
                                                 <field name="tc_tax_deduct_ftr"/>
                                                 <field name="tc_income_from_prp"/>
-                                                <field name="tc_less_ded_allowed"/>
                                                 <field name="tc_taxable_ifd"/>
                                                 <field name="tc_tax_liability_ifd"/>
                                                 <field name="tc_capital_gain"/>
-                                                <field name="tc_less"/>
                                                 <field name="tc_exmt_cg"/>
                                                 <field name="tc_balnc_taxable"/>
                                                 <field name="tc_tax_pay_cg"/>
@@ -914,6 +908,23 @@
                                                 <field name="tc_ttd_sbi"/>
                                                 <field name="tc_total_tax_ded"/>
                                                 <field name="tc_final_pay_refund"/>
+                                            </group>
+                                        </page>
+                                        <page string="Tax Credit" colspan="4">
+                                            <group name="tax_sub_type_bool" string="Tax Credit" col="2">
+                                                <field name="tc_sca"/>
+                                                <field name="tc_fta"/>
+                                                <field name="tc_ftc"/>
+                                                <field name="tc_donations"/>
+                                                <field name="tc_inv_shares"/>
+                                                <field name="tc_inv_hi"/>
+                                                <field name="tc_capf"/>
+                                                <field name="tc_rusta"/>
+                                                <field name="tc_emp_gen"/>
+                                                <field name="tc_inv_plnmach"/>
+                                                <field name="tc_enlistment"/>
+                                                <field name="tc_ind_eqtinv"/>
+                                                <field name="tc_ind_plnmach"/>
                                             </group>
                                         </page>
 
@@ -1647,6 +1658,76 @@
             <!--************************[Menu-ENDS]***************************-->
 
         <!--!!______________________[Capital Gain-ENDS]_____________________________________!!-->
+
+
+
+       <!--=====================================================================================
+        #    v: Final Tax .
+        ======================================================================================-->
+
+            <!--========================[Form View-START]=====================-->
+
+                <record id="final_tax_form_view" model="ir.ui.view">
+                    <field name="name">final_tax_form_view</field>
+                    <field name="model">final_tax.final_tax</field>
+                    <field name="type">form</field>
+                    <field name="arch" type="xml">
+                        <form string="Final Tax">
+                            <sheet>
+                                <group name="group_top">
+                                    <group name="group_left">
+                                        <field name="name"/>
+                                        <field name="rate"/>
+                                    </group>
+                                    <group name="group_right">
+                                        <field name="section" />
+                                        
+                                    </group> 
+                                </group>
+                            </sheet>
+                            <!-- Mail foram-START -->
+                                <div class="oe_chatter">
+                                    <field name="message_follower_ids" widget="mail_followers"/>
+                                    <field name="message_ids" widget="mail_thread"/>
+                                </div>
+                            <!-- Mail foram-ENDS -->
+                        </form>
+                    </field>
+                </record>
+            <!--************************[Form View-ENDS]**********************-->
+
+            <!--========================[Tree View-START]=====================-->
+                <record id="final_tax_tree_view" model="ir.ui.view">
+                    <field name="name">final_tax_tree_view</field>
+                    <field name="model">final_tax.final_tax</field>
+                    <field name="type">tree</field>
+                    <field name="arch" type="xml">
+                        <tree string="Final Tax">
+                            <field name="name"/>
+                            <field name="rate"/>
+                            <field name="section" />
+                        </tree>
+                    </field>
+                </record>
+            <!--************************[Tree View-ENDS]**********************-->
+
+            <!--========================[Action-START]========================-->
+
+                <record model="ir.actions.act_window" id="final_tax_action">
+                    <field name="name">Final Tax</field>
+                    <field name="res_model">final_tax.final_tax</field>
+                    <field name="view_type">form</field>
+                    <field name="view_mode">tree,form</field>
+                </record>
+            <!--************************[Action-ENDS]*************************-->
+
+            <!--========================[Menu-START]==========================-->
+
+                <menuitem name="Final Tax" id="final_tax_id" parent="menu_income_tax_returns_child" action="final_tax_action" sequence="9"/>
+            <!--************************[Menu-ENDS]***************************-->
+
+        <!--!!______________________[Final Tax-ENDS]_____________________________________!!-->
+
 
 
     </data>
