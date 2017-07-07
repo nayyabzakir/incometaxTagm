@@ -84,19 +84,21 @@ class tax_computation(models.Model):
 	tc_total_tax_ded	= fields.Float(string="Total Tax Deducted")
 	tc_final_pay_refund	= fields.Float(string="Net Tax Payable / (Refundable)")
 
-	tc_sca 				= fields.Boolean(string="Senior Citizen Allowance")
-	tc_fta 				= fields.Boolean(string="Full time Teacher Allowance")
-	tc_ftc 				= fields.Boolean(string="Foreign Tax Credit")
-	tc_donations		= fields.Boolean(string="Donations")
-	tc_inv_shares		= fields.Boolean(string="Investment in Shares")
-	tc_inv_hi			= fields.Boolean(string="Investment on Health Insurance")
-	tc_capf				= fields.Boolean(string="Contribution to approved pension fund")
-	tc_rusta			= fields.Boolean(string="Registration under Sales Tax Act ")
-	tc_emp_gen			= fields.Boolean(string="Employment Generation")
-	tc_inv_plnmach		= fields.Boolean(string="Investment in Plant and Machinery")
-	tc_enlistment		= fields.Boolean(string="Enlistment")
-	tc_ind_eqtinv		= fields.Boolean(string="Industrial underetakings [Equity Investment]")
-	tc_ind_plnmach		= fields.Boolean(string="Industrial underetakings [Plant and Machinery]")
+	# tc_sca 				= fields.Boolean(string="Senior Citizen Allowance")
+	# tc_fta 				= fields.Boolean(string="Full time Teacher Allowance")
+	# tc_ftc 				= fields.Boolean(string="Foreign Tax Credit")
+	# tc_donations		= fields.Boolean(string="Donations")
+	# tc_inv_shares		= fields.Boolean(string="Investment in Shares")
+	# tc_inv_hi			= fields.Boolean(string="Investment on Health Insurance")
+	# tc_capf				= fields.Boolean(string="Contribution to approved pension fund")
+	# tc_rusta			= fields.Boolean(string="Registration under Sales Tax Act ")
+	# tc_emp_gen			= fields.Boolean(string="Employment Generation")
+	# tc_inv_plnmach		= fields.Boolean(string="Investment in Plant and Machinery")
+	# tc_enlistment		= fields.Boolean(string="Enlistment")
+	# tc_ind_eqtinv		= fields.Boolean(string="Industrial underetakings [Equity Investment]")
+	# tc_ind_plnmach		= fields.Boolean(string="Industrial underetakings [Plant and Machinery]")
+
+	tax_cr_tree_ids		= fields.Many2many('tax.credits.tree')
 
 
 
@@ -177,6 +179,7 @@ class tax_computation(models.Model):
 		self.createDedAllowance()
 		self.getTaxCompDetails()
 		self.getBusinessProfit()
+		self.computeTaxCredit()
 
 
 	def getTaxCompDetails(self):
@@ -197,6 +200,20 @@ class tax_computation(models.Model):
 		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id)
 		self.tc_ftr_exempt_diff =  self.tc_total_income - self.tc_less_exempt - self.tc_less_ftr
 		self.tc_fe_ded_diff =  self.tc_ftr_exempt_diff - self.tc_less_ded_allowed
+
+	def computeTaxCredit(self):
+		if self.tax_cr_tree_ids:
+			for line in self.tax_cr_tree_ids:
+				tc_record = self.tax_credits_id.search([('description','=',line.name)])
+				if tc_record:
+					if line.rate != 0:
+						tc_record.amount = self.tc_tax_liabilty * line.rate
+				else:
+					self.tax_credits_id.create({
+						'description' : line.name,
+						'amount' : self.tc_tax_liabilty * line.rate,
+						'tax_credits_id' : self.id,
+						})
 
 	def getBusinessProfit(self):
 		if self.pnl_computation:

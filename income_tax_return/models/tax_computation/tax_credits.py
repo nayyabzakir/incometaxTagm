@@ -18,3 +18,4 @@ class tax_credits(models.Model):
 		self.tax = self.amount * self.rate
 
 	tax_credits_id = fields.Many2one('tax.computation',ondelete='cascade', required=True)
+

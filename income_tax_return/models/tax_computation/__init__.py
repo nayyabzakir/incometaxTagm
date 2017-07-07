@@ -9,3 +9,4 @@ from . import rebate
 from . import profit_loss
 from . import pnl_computation
 from . import income_under_exempt
+from . import tax_credits_rates
