@@ -44,6 +44,14 @@ class payments(models.Model):
 		('deductible_allowance', 'Deductible Allowance')
         ])
 
+	sub_type = fields.Selection([
+            ('sal', 'Salary'),
+            ('bus', 'Business'),
+            ('property', 'Property'),
+            ('oth_sour', 'Other Sources'),
+            ('cgt', 'CGT'),
+            ])
+
 	payments_id = fields.Many2one('comparative.wealth',
         ondelete='cascade', string="Wealth Reconciliation", required=True)
 

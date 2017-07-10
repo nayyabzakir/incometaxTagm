@@ -258,6 +258,7 @@
                                                         <field name="receipt_type" string="Type"/>
                                                         <field name="deductible_allowance_ids"/>
                                                         <field name="tax_type" string="Tax Type"/>
+                                                        <field name="sub_type" string="Sub Tax Type"/>
 <!--                                                         <field name="y2011" sum="Total"/>
                                                         <field name="y2012" sum="Total"/>
                                                         <field name="y2013" sum="Total"/> -->
@@ -274,16 +275,7 @@
                                             <!-- "Reconciliation of Cash and Bank Balance Workbook"-START-->
                                                 <group name="receipts" string="Reconciliation of Cash and Bank Balance">
                                                 </group>
-                                                <field name="cash_reconciliation_balance_id" attrs="{'invisible': [('all_years', '==', True)]}"  nolabel='1'>
-                                                    <tree editable="bottom">
-                                                        <field name="sequence" widget="handle" />
-                                                        <field name="description"/>
-                                                        <field name="receipt_type" string="Type"/>
-                                                        <field name="y2016" sum="Total"/>
-                                                        <field name="y2015" sum="Total"/>
-                                                    </tree>
-                                                </field>
-                                                <!--  -->
+
                                                 <field name="cash_reconciliation_balance_ids" attrs="{'invisible': [('all_years', '!=', True)]}"  nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
@@ -311,16 +303,7 @@
                                             <!-- Workbook-"Opening"-START -->
                                                 <group name="opening" string="Opening">
                                                 </group>
-                                                <field name="wealth_reconciliation_opening_id" attrs="{'invisible': [('all_years', '==', True)]}" nolabel='1'>
-                                                    <tree editable="bottom">
-                                                        <field name="sequence" widget="handle" />
-                                                        <field name="description"/>
-                                                        <field name="y2016" sum="Total"/>
-                                                        <field name="y2015" sum="Total"/>
-                                                        <field name="y2014" sum="Total"/>
-                                                    </tree>
-                                                </field>
-                                                 
+
                                                 <field name="wealth_reconciliation_opening_ids" attrs="{'invisible': [('all_years', '!=', True)]}" nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
@@ -349,17 +332,7 @@
                                             <!-- Workbook-"Income"-START -->
                                                 <group name="income" string="Income">
                                                 </group>
-                                                <field name="wealth_reconciliation_income_id" attrs="{'invisible': [('all_years', '==', True)]}" nolabel='1'>
-                                                    <tree editable="bottom">
-                                                        <field name="sequence" widget="handle" />
-                                                        <field name="description"/>
-                                                        <field name="receipt_type" string="Type"/>
-                                                        <field name="y2016" sum="Total"/>
-                                                        <field name="y2015" sum="Total"/>
-                                                        <field name="y2014" sum="Total"/>
-                                                    </tree>
-                                                </field>
-                                                 
+
                                                 <field name="wealth_reconciliation_income_ids" attrs="{'invisible': [('all_years', '!=', True)]}" nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
@@ -390,17 +363,6 @@
                                                 <group name="expense" string="Expense">
                                                 </group>
 
-                                                <field name="wealth_reconciliation_expense_id" attrs="{'invisible': [('all_years', '==', True)]}"  nolabel='1'>
-                                                    <tree editable="bottom">
-                                                        <field name="sequence" widget="handle" />
-                                                        <field name="description"/>
-                                                        <field name="receipt_type" string="Type"/>
-                                                        <field name="y2016" sum="Total"/>
-                                                        <field name="y2015" sum="Total"/>
-                                                        <field name="y2014" sum="Total"/>
-                                                    </tree>
-                                                </field>
-                                                
                                                 <field name="wealth_reconciliation_expense_ids" attrs="{'invisible': [('all_years', '!=', True)]}" nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
@@ -429,17 +391,7 @@
                                             <!-- Workbook-"Closing"-START -->
                                                 <group name="closing" string="Closing">
                                                 </group>
-
-                                                <field name="cash_closing_1_id" attrs="{'invisible': [('all_years', '==', True)]}"  nolabel='1'>
-                                                    <tree editable="bottom">
-                                                        <field name="sequence" widget="handle" />
-                                                        <field name="description"/>
-                                                        <field name="y2016" sum="Total"/>
-                                                        <field name="y2015" sum="Total"/>
-                                                        <field name="y2014" sum="Total"/>
-                                                    </tree>
-                                                </field>
-                                                
+     
                                                 <field name="cash_closing_1_ids" attrs="{'invisible': [('all_years', '!=', True)]}" nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
@@ -814,6 +766,7 @@
                                                 <tree editable="bottom">
                                                     <field name="description"/>
                                                     <field name="tax_type"/>
+                                                    <field name="sub_type"/>
                                                     <field name="amount" sum="Total"/>
                                                 </tree>
                                             </field>

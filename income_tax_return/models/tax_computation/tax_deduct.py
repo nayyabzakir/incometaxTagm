@@ -18,6 +18,14 @@ class tax_deduct(models.Model):
 		('deductible_allowance', 'Deductible Allowance')
         ])
 
+	sub_type = fields.Selection([
+            ('sal', 'Salary'),
+            ('bus', 'Business'),
+            ('property', 'Property'),
+            ('oth_sour', 'Other Sources'),
+            ('cgt', 'CGT'),
+            ])
+
 	tax_deduct_id = fields.Many2one('tax.computation',
         ondelete='cascade')
 

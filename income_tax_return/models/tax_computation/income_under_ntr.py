@@ -18,11 +18,6 @@ class income_under_ntr(models.Model):
 		])
 
 	receipt_type = fields.Selection([
-		('ncr', 'Non Cash'),
-		('income', 'Income'),
-		('liability', 'Liability'),
-		('capital_gain', 'Capital Gain'),
-		('asset', 'Asset'),
 		('sal', 'Salary'),
 		('bus', 'Business'),
 		('property', 'Property'),

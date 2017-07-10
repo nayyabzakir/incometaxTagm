@@ -201,7 +201,7 @@ class tax_computation(models.Model):
 		self.tc_total_income=self.tc_salary+self.tc_business+self.tc_property+self.tc_other_sources+self.tc_cgt+self.tc_for_remit+self.tc_arg_in
 		self.tc_less_exempt =   sum(line.amount for line in self.tax_computation_exempt_id)
 		self.tc_less_ftr =  sum(line.amount for line in self.tax_computation_ftr_id)
-		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable')
+		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type in ['sal','bus','oth_sour'])
 		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded
 		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'NTR')
 		self.tc_taxable_ifd =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'Property')
@@ -216,6 +216,21 @@ class tax_computation(models.Model):
 		self.tc_pay_refund_uftr =  self.tc_tax_charge_ftr - self.tc_tax_deduct_ftr
 		self.tc_income_from_prp =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property')
 		self.tc_taxable_ifp =  self.tc_income_from_prp - self.tc_taxable_ifd
+		self.tc_tax_paid_cg =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type == 'cgt')
+		self.tc_ifp_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type == 'property')
+		self.tc_ifp_pay_refund = self.tc_tax_liability_ifd - self.tc_ifp_ded
+		self.tc_capital_gain = sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt')
+		self.tc_balnc_taxable = self.tc_capital_gain - self.tc_cgt_ded
+		self.tc_cgt_pay_refund = self.tc_tax_pay_cg - self.tc_tax_paid_cg
+		self.tc_ttl_ntr = self.tc_tax_liabilty
+		self.tc_ttl_ftr = self.tc_tax_charge_ftr
+		self.tc_ttl_sbi = self.tc_tax_liability_ifd + self.tc_tax_pay_cg
+		self.tc_total_tax_lib = self.tc_ttl_ntr + self.tc_ttl_ftr + self.tc_ttl_sbi
+		self.tc_ttd_ntr = self.tc_tax_already_ded
+		self.tc_ttd_ftr = self.tc_tax_deduct_ftr
+		self.tc_ttd_sbi = self.tc_tax_paid_cg + self.tc_ifp_ded
+		self.tc_total_tax_ded = self.tc_ttd_ntr + self.tc_ttd_ftr + self.tc_ttd_sbi
+		self.tc_final_pay_refund = self.tc_total_tax_lib - self.tc_total_tax_ded
 
 	def computeTaxCredit(self):
 		if self.tax_cr_tree_ids:
@@ -349,6 +364,7 @@ class tax_computation(models.Model):
 					'payments_id': line.id,
 					'tax_deduct_id': self.id,
 					'tax_type':line.tax_type,
+					'sub_type':line.sub_type,
 					})
 				self.env.cr.execute("UPDATE tax_deduct b SET    amount = a."+year+" FROM   payments a WHERE  b.payments_id = a.id and b.id = "+str(new_taxded_id.id)+"")
 
@@ -371,28 +387,30 @@ class tax_computation(models.Model):
 
 	@api.multi
 	def get_tax_rate(self):
-		business_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type!='exempt' and line.tax_type!='salary')
-		salary_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type =='salary')
+		business_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type!='arg_in' and line.receipt_type!='foreign_remit'and line.receipt_type!='sal')
+		salary_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sal')
 		if business_income > salary_income:
 			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
 			tax_rate_book = required_class.business_rates_table_ids
 			for x in tax_rate_book:
-				if x.amount_from <= self.taxable_income <= x.amount_to:
-					taxable_amount = self.taxable_income - x.amount_from
-					tax_amount = taxable_amount * x.rate_of_tax
-					self.tax_rate = (tax_amount / self.taxable_income) / 100
-					self.fixed_tax = x.fixed_tax_amount
-					self.tax_liability = self.taxable_income * self.tax_rate + self.fixed_tax
+				if x.amount_from <= self.tc_ntr <= x.amount_to:    # 850000
+					fixed_tax = x.fixed_tax_amount                        #32000
+					taxable_amount = self.tc_ntr - x.amount_from   #100000
+					tax_amount = taxable_amount * x.rate_of_tax				   #15000
+					# self.tc_tax_liabilty =  fixed_tax + tax_amount 		 #47000
+					tax_rate = (tax_amount / self.tc_ntr) / 100
+					self.tc_tax_liabilty = self.tc_ntr * tax_rate + fixed_tax
+
 		else:
 			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
 			tax_rate_book = required_class.salaried_rates_table_ids
 			for x in tax_rate_book:
-				if x.amount_from <= self.taxable_income <= x.amount_to:
-					taxable_amount = self.taxable_income - x.amount_from
-					tax_amount = taxable_amount * x.rate_of_tax
-					self.tax_rate = (tax_amount / self.taxable_income) / 100
-					self.fixed_tax = x.fixed_tax_amount
-					self.tax_liability = self.taxable_income * self.tax_rate + self.fixed_tax
+				if x.amount_from <= self.tc_ntr <= x.amount_to:  #85000
+					fixed_tax = x.fixed_tax_amount                       #14500
+					taxable_amount = self.tc_ntr - x.amount_from # 100000
+					tax_amount = taxable_amount * x.rate_of_tax               #10000
+					tax_rate = (tax_amount / self.tc_ntr) / 100
+					self.tc_tax_liabilty = self.tc_ntr * tax_rate + fixed_tax
 
 	@api.multi
 	def virtual_tax_minimum(self):
