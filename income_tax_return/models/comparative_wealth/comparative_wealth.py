@@ -180,7 +180,7 @@ class comparative_wealth(models.Model):
 		expense_record = self.wealth_reconciliation_expense_ids.search([('wealth_expense_id','=',self.id)])
 		expense_record.unlink()
 		if self.cash_payments_ids:
-			for line in self.cash_payments_ids.search([('receipt_type','=','expense'),('payments_id.id','=',self.id)]):
+			for line in self.cash_payments_ids.search([('receipt_type','in',['expense','ded_all']),('payments_id.id','=',self.id)]):
 				self.wealth_reconciliation_expense_ids.create({
 					'description' : line.description,
 					'receipt_type': line.tax_type,
