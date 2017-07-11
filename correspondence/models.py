@@ -122,3 +122,28 @@ class correspondencehistory(models.Model):
     ondelete='cascade', string="Name", required=True)
     
     _rec_name = 'correspondence_his'
+
+
+
+
+class correspondencefiletype(models.Model):
+    _name = 'correspondence.file.type'
+    _rec_name = 'assessing_officer'
+    date = fields.Date('Date')
+    assessing_officer = fields.Char("Assessing Officer")
+    notice_no = fields.Char("Notice No")
+    description      = fields.Text()
+    customer_name    = fields.Many2one('res.partner','Customer')
+    state = fields.Selection([
+        ('draft','Draft'),
+        ('validate','Validated'),
+        ],string="Stage", default="draft")
+
+    @api.multi
+    def validate(self):
+        self.write({'state': 'validate'})
+
+
+    @api.multi
+    def createInvoice(self):
+        print "xxx"

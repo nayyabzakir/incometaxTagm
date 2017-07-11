@@ -470,5 +470,70 @@
                 <menuitem name="Correspondence History" id="correspondence_child_child_2" parent="correspondence_child" action="action_correspondence_history" sequence="2"/>
             <!--************************[Menu-ENDS]***************************-->
         <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%Correspondence File Type%%%%%%%%%%%%%%%%%%%% -->
+            <!--========================[Form View-START]=====================-->
+                <record id="correspondencefiletype_form_view" model="ir.ui.view">
+                    <field name="name">correspondencefiletype_form_view</field>
+                    <field name="model">correspondence.file.type</field>
+                    <field name="type">form</field>
+                    <field name="arch" type="xml">
+                        <form string="Correspondence File Type">
+                            <header>
+                                <button name="validate" type="object" string="Validate" class="oe_highlight"/>
+                                <button name="createInvoice" type="object" string="Create Invoice" class="oe_highlight"/>
+                                <field name="state" widget="statusbar"/>
+                            </header>
+                            <sheet>
+                                <group name="group_top">
+                                    <group name="group_left">                               
+                                        <field name="assessing_officer"  attrs="{'readonly': [('state','=',('validate'))]}"/>
+                                        <field name="notice_no" attrs="{'readonly': [('state','=',('validate'))]}"/>
+                                    </group>
+                                    <group name="group_right">
+                                        <field name="customer_name" attrs="{'readonly': [('state','=',('validate'))]}"/>
+                                        <field name="date" attrs="{'readonly': [('state','=',('validate'))]}"/>
+                                    </group>
+                                </group>
+                                <field name="description" widget="text_ckeditor4"/>
+                            </sheet>
+                        </form>
+                    </field>
+                </record>
+            <!--************************[Form View-ENDS]**********************-->
+
+            <!--========================[Tree View-START]=====================-->
+
+                <record id="correspondencefiletype_tree_view" model="ir.ui.view">
+                    <field name="name">correspondencefiletype_tree_view</field>
+                    <field name="model">correspondence.file.type</field>
+                    <field name="type">tree</field>
+                    <field name="arch" type="xml">
+                        <tree string="Correspondence File Type">
+                            <field name="date"/>
+                            <field name="assessing_officer"/>
+                            <field name="notice_no"/>
+                            <field name="description" widget="text_ckeditor4"/>
+                        </tree>
+                    </field>
+                </record>
+            <!--************************[Tree View-ENDS]**********************-->
+
+            <!--========================[Action-START]========================-->
+                <record model="ir.actions.act_window" id="action_correspondencefiletype">
+                    <field name="name">Correspondence File Type</field>
+                    <field name="res_model">correspondence.file.type</field>
+                    <field name="view_type">form</field>
+                    <field name="view_mode">tree,form</field>
+                </record>
+            <!--************************[Action-ENDS]*************************-->
+
+            <!--========================[Menu-START]==========================-->
+                <menuitem name="File Type" id="correspondencefiletype_child_child_2" parent="correspondence_child" action="action_correspondencefiletype" sequence="6"/>
+            <!--************************[Menu-ENDS]***************************-->
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
     </data>
 </openerp>
