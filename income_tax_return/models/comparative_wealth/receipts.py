@@ -49,7 +49,7 @@ class receipts(models.Model):
             ])
 	tax_type = fields.Selection([
 		('ntr', 'NTR'),
-		# ('taxable', 'Taxable'),
+		('sbi', 'SBI'),
         ('exempt', 'Exempt'),
         ('ftr', 'FTR'),
         ('minimum', 'Minimum'),

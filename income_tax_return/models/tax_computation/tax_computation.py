@@ -36,6 +36,7 @@ class tax_computation(models.Model):
 	income_under_ftr        = fields.Float(string="Income under FTR")
 	tax_deduct              = fields.Float(string="Tax deducted")
 	tax_computation_ntr_id        = fields.One2many('income.under.ntr', 'income_under_ntr_id')
+	tax_computation_sbi_id        = fields.One2many('separate.block.income', 'separate_block_income_id')
 	tax_computation_deductible_id = fields.One2many('deductible.allowance', 'deductible_allowance_id')
 	tax_credits_id                = fields.One2many('tax.credits', 'tax_credits_id')
 	tax_rebate_id                 = fields.One2many('income.rebate', 'income_rebate_id')
@@ -63,6 +64,7 @@ class tax_computation(models.Model):
 	tc_ntr 				= fields.Float(string="16 NTR")
 	tc_tax_liabilty		= fields.Float(string="17 Tax Liability Under NTR")
 	tc_tax_already_ded	= fields.Float(string="18 Tax Already Deducted")
+	tc_tax_credits		= fields.Float(string="18.5 Tax Credits")
 	tc_tax_pay_refund	= fields.Float(string="19 Net Tax Payable / (Refundable)")
 	tc_income_charg_uftr= fields.Float(string="20 Income Chargable to Tax under FTR")
 	tc_tax_charge_ftr	= fields.Float(string="21 Tax Chargable under FTR ")
@@ -72,12 +74,12 @@ class tax_computation(models.Model):
 	tc_taxable_ifd		= fields.Float(string="25 Deductions Allowed From Property Income")
 	tc_taxable_ifp		= fields.Float(string="26 Taxable Income From Property")
 	tc_tax_liability_ifd= fields.Float(string="27 Tax Liability From Property")
-	tc_capital_gain	    = fields.Float(string="28 Capital Gain")
+	tc_capital_gain	    = fields.Float(string="28 CG Immoveable Property")
 	tc_exmt_cg			= fields.Float(string="29 Exempt Capital Gain ")
-	tc_cgt_ded			= fields.Float(string="30 CGT Deductions Allowed")
-	tc_balnc_taxable	= fields.Float(string="31 Balance Taxable")
-	tc_tax_pay_cg		= fields.Float(string="32 Tax Payable on Capital Gain")
-	tc_tax_paid_cg		= fields.Float(string="33 Tax Paid on Capital Gain")
+	tc_cgt_ded			= fields.Float(string="30 CGT Deductions Allowed Immoveable Property")
+	tc_balnc_taxable	= fields.Float(string="31 Balance Taxable Immoveable Property")
+	tc_tax_pay_cg		= fields.Float(string="32 Tax Payable on CG Immoveable Property")
+	tc_tax_paid_cg		= fields.Float(string="33 Tax Paid on CG Immoveable Property")
 	tc_ttl_ntr			= fields.Float(string="34 NTR")
 	tc_ttl_ftr			= fields.Float(string="35 FTR")
 	tc_ttl_sbi			= fields.Float(string="36 Separate Block Income")
@@ -89,7 +91,14 @@ class tax_computation(models.Model):
 	tc_final_pay_refund	= fields.Float(string="42 Net Tax Payable / (Refundable)")
 	tc_ifp_ded			= fields.Float(string="43 Tax Deducted")
 	tc_ifp_pay_refund	= fields.Float(string="44 Tax Payable / (Refundable)")
-	tc_cgt_pay_refund	= fields.Float(string="45 CGT Payable / (Refundable)")
+	tc_cgt_pay_refund	= fields.Float(string="45 CGT Payable / (Refundable) Immoveable Property")
+
+	tc_capital_gain_s	= fields.Float(string="46 CG Securities")
+	tc_cgt_ded_s		= fields.Float(string="47 CGT Deductions Allowed Securities")
+	tc_balnc_taxable_s	= fields.Float(string="48 Balance Taxable Securities")
+	tc_tax_pay_cg_s		= fields.Float(string="49 Tax Payable on CG Securities" )
+	tc_tax_paid_cg_s	= fields.Float(string="50 Tax Paid on CG Securities")
+	tc_cgt_pay_refund_s	= fields.Float(string="51 CGT Payable / (Refundable) Securities")
 
 	# tc_sca 				= fields.Boolean(string="Senior Citizen Allowance")
 	# tc_fta 				= fields.Boolean(string="Full time Teacher Allowance")
@@ -184,16 +193,20 @@ class tax_computation(models.Model):
 		self.createTaxDeducted()
 		self.createIncomeUExempt()
 		self.createDedAllowance()
-		self.getTaxCompDetails()
+		self.createSBI()
+		self.updateCGTAmount()
+		self.calculateTaxSBI()
 		self.getBusinessProfit()
 		self.computeTaxCredit()
+		self.getTaxCompDetails()
 
 
 	def getTaxCompDetails(self):
 		self.tc_salary =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sal') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='sal') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='sal')
 		self.tc_business =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='bus') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='bus') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='bus')
 		self.tc_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
-		self.tc_less_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
+		# self.tc_less_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
+		self.tc_less_property =  0
 		self.tc_other_sources =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='oth_sour')
 		self.tc_cgt =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='cgt')
 		self.tc_for_remit =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='foreign_remit')
@@ -202,24 +215,26 @@ class tax_computation(models.Model):
 		self.tc_less_exempt =   sum(line.amount for line in self.tax_computation_exempt_id)
 		self.tc_less_ftr =  sum(line.amount for line in self.tax_computation_ftr_id)
 		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type in ['sal','bus','oth_sour'])
-		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded
+		self.tc_tax_credits = sum(line.tax for line in self.tax_credits_id)
+		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded - self.tc_tax_credits
 		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'NTR')
 		self.tc_taxable_ifd =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'Property')
 		self.tc_cgt_ded =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'CGT')
 		self.tc_ftr_exempt_diff =  self.tc_total_income - self.tc_less_exempt - self.tc_less_ftr
 		self.tc_fe_ded_diff =  self.tc_ftr_exempt_diff - self.tc_less_ded_allowed
-		self.tc_less_cap_gain = self.tc_cgt
+		self.tc_less_cap_gain = 0
+		# self.tc_less_cap_gain = self.tc_cgt
 		self.tc_ntr = self.tc_fe_ded_diff - self.tc_less_cap_gain - self.tc_less_property
 		self.tc_income_charg_uftr = self.tc_less_ftr
 		self.tc_tax_deduct_ftr =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='tax_ftr')
 		self.tc_tax_charge_ftr =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='tax_ftr')
 		self.tc_pay_refund_uftr =  self.tc_tax_charge_ftr - self.tc_tax_deduct_ftr
-		self.tc_income_from_prp =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property')
+		self.tc_income_from_prp =  sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='property')
 		self.tc_taxable_ifp =  self.tc_income_from_prp - self.tc_taxable_ifd
 		self.tc_tax_paid_cg =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type == 'cgt')
 		self.tc_ifp_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type == 'property')
 		self.tc_ifp_pay_refund = self.tc_tax_liability_ifd - self.tc_ifp_ded
-		self.tc_capital_gain = sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt')
+		self.tc_capital_gain = sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='cgt')
 		self.tc_balnc_taxable = self.tc_capital_gain - self.tc_cgt_ded
 		self.tc_cgt_pay_refund = self.tc_tax_pay_cg - self.tc_tax_paid_cg
 		self.tc_ttl_ntr = self.tc_tax_liabilty
@@ -336,6 +351,23 @@ class tax_computation(models.Model):
 				self.env.cr.execute("UPDATE income_under_ftr b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_ftr_id.id)+"")
 
 
+
+	def createSBI(self):
+		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+
+		self.tax_computation_sbi_id.unlink()
+		year = 'y'+str(self.tax_year.code)
+		for line in required_class.cash_receipts_ids:
+			if line.tax_type == 'sbi':
+				new_sbi_id = self.tax_computation_sbi_id.create({
+					'description' : line.description,
+					'receipts_id': line.id,
+					'receipt_type' : line.sub_type,
+					'separate_block_income_id': self.id,
+					})
+				self.env.cr.execute("UPDATE separate_block_income b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_sbi_id.id)+"")
+
+
 	def createIncomeUExempt(self):
 		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
@@ -370,19 +402,79 @@ class tax_computation(models.Model):
 
 
 	def createDedAllowance(self):
-		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+		if self.comparative_id:
+			self.tax_computation_deductible_id.unlink()
+			year = 'y'+str(self.tax_year.code)
+			if self.comparative_id.cash_payments_ids:
+				for line in self.comparative_id.cash_payments_ids:
+					if line.receipt_type == 'ded_all':
+						print line
+						self.tax_computation_deductible_id.create({
+							'description' : line.description,
+							'deductible_allowance_id': self.id,
+							'deductible_allowance_ids': line.deductible_allowance_ids.id,
+							'payment_id': line.id,
+							})
+						self.env.cr.execute("UPDATE deductible_allowance b SET    amount = a."+year+" , ded_allowed= a."+year+"  FROM   payments a WHERE  b.payment_id = a.id")
+		else:
+			raise Warning("Please select Comparative Wealth for :",self.client_name.name)
 
-		self.tax_computation_deductible_id.unlink()
-		year = 'y'+str(self.tax_year.code)
-		for line in required_class.cash_payments_ids.search([('receipt_type','=','ded_all')]):
-			print line
-			self.tax_computation_deductible_id.create({
-				'description' : line.description,
-				'deductible_allowance_id': self.id,
-				'deductible_allowance_ids': line.deductible_allowance_ids.id,
-				'payment_id': line.id,
-				})
-			self.env.cr.execute("UPDATE deductible_allowance b SET    amount = a."+year+" , ded_allowed= a."+year+"  FROM   payments a WHERE  b.payment_id = a.id")
+	def updateCGTAmount(self):
+		if self.comparative_id:
+
+			##########Capital Gain Amount For Income Under NTR######################## 
+			for ntr in self.tax_computation_ntr_id:
+				if ntr.receipt_type == 'cgt':
+					receipts_record = self.comparative_id.cash_receipts_ids.search([('id','=',ntr.receipts_id.id)])
+					for rec in receipts_record.capital_gain.capital_gain_ids:
+						if rec.year_sale.code == self.tax_year.code:
+							ntr.amount = rec.capital_gain
+							ntr.no_of_months = rec.no_of_months
+
+			##########Capital Gain Amount For Income Under SBI######################## 
+			for sbi in self.tax_computation_sbi_id:
+				if sbi.receipt_type == 'cgt':
+					receipts_record = self.comparative_id.cash_receipts_ids.search([('id','=',sbi.receipts_id.id)])
+					for rec in receipts_record.capital_gain.capital_gain_ids:
+						if rec.year_sale.code == self.tax_year.code:
+							sbi.amount = rec.capital_gain
+							sbi.no_of_months = rec.no_of_months
+							sbi.details = rec.details
+							sbi.im_sec_type = rec.im_sec_type
+
+			##########Capital Gain Amount For Income Under FTR######################## 
+			for ftr in self.tax_computation_ftr_id:
+				if ftr.receipt_type == 'cgt':
+					receipts_record = self.comparative_id.cash_receipts_ids.search([('id','=',ftr.receipts_id.id)])
+					for rec in receipts_record.capital_gain.capital_gain_ids:
+						if rec.year_sale.code == self.tax_year.code:
+							ftr.amount = rec.capital_gain
+							ftr.no_of_months = rec.no_of_months
+
+		else:
+			raise Warning("Please select Comparative Wealth for :",self.client_name.name)
+
+	def calculateTaxSBI(self):
+		# if self.tax_computation_sbi_id:
+		for line in self.tax_computation_sbi_id:
+			if line.receipt_type == 'cgt':
+				if line.im_sec_type == 'sec':
+					if line.details == 'aca':
+						line.tax = line.amount * 0.075
+					elif line.details == 'acb':
+						line.tax = line.amount * 0.0
+					elif line.details == 'pme':
+						line.tax = line.amount * 0.05
+					else:
+						required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
+						for rate in required_class.securities_disposal_ids:
+							if rate.period_from <= line.no_of_months < rate.period_to:
+								line.tax = line.amount * (rate.rate / 100)
+
+
+
+
+
 
 
 	@api.multi

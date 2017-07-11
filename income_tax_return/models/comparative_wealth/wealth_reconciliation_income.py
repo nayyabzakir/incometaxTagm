@@ -31,6 +31,7 @@ class wealth_reconciliation_income(models.Model):
         ('ftr', 'FTR'),
         ('minimum', 'Minimum'),
         ('salary', 'Salary'),
+        ('sbi', 'SBI'),
         ])
 	sequence = fields.Integer(string ='Sequence')
 	_order   = 'sequence'

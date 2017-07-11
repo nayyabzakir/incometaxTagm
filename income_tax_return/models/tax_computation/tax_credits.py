@@ -12,10 +12,11 @@ class tax_credits(models.Model):
 	amount      = fields.Float()
 	rate        = fields.Float()
 	tax         = fields.Float()
+	remarks     = fields.Char()
 
 	@api.onchange('amount','rate')
 	def _onchange_ftr_vals(self):
-		self.tax = self.amount * self.rate
+		self.tax = self.amount * (self.rate / 100)
 
 	tax_credits_id = fields.Many2one('tax.computation',ondelete='cascade', required=True)
 

@@ -17,3 +17,4 @@ class tax_rates_table(models.Model):
 
 	income_from_property_ids = fields.One2many('income.from.property', 'income_from_property_id')
 	securities_disposal_ids = fields.One2many('securities.disposal', 'securities_disposal_id')
+	securities_immoveable_ids = fields.One2many('securities.immoveable', 'sec_immoveable_id')

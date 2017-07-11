@@ -5,17 +5,11 @@
 
 from openerp import models, fields, api
 
-class income_under_ntr(models.Model):
-	_name = 'income.under.ntr'
+class separate_block_income(models.Model):
+	_name = 'separate.block.income'
 
 	description = fields.Char()
 	amount      = fields.Float()
-	tax_type    = fields.Selection([
-		('ntr', 'NTR'),
-		('ftr', 'FTR'),
-		('exempt', 'Exempt'),
-		('minimum', 'Minimum'),
-		])
 
 	receipt_type = fields.Selection([
 		('sal', 'Salary'),
@@ -26,16 +20,20 @@ class income_under_ntr(models.Model):
 		('foreign_remit', 'Foreign Remittance'),
 		('arg_in', 'Agricultural Income'),
 		])
-	sub_tax_type    = fields.Selection([
-		('nor', 'NTR'),
-		('min', 'Minimum'),
-		])
 	no_of_months   = fields.Integer()
-	income_under_ntr_id = fields.Many2one('tax.computation',
+	details = fields.Selection([
+		('aca', 'Accquired After 1.7.2012'),
+		('acb', 'Accquired Before 1.7.2012'),
+        ('pme', 'Pakistan Mercantile Exchange'),
+        ], string="Details")
+
+	im_sec_type = fields.Selection([
+		('imp', 'Immoveable Property'),
+		('sec', 'Securites'),
+        ], string="Type")
+	separate_block_income_id = fields.Many2one('tax.computation',
 		ondelete='cascade')
+	tax = fields.Float()
 
 	receipts_id = fields.Many2one('receipts',
         ondelete='cascade', string="Receipts")
-
-	pnl_id = fields.Many2one('pnl.computation',
-        ondelete='cascade', string="PNL Computation ID")

@@ -26,6 +26,7 @@ class income_under_ftr(models.Model):
 		('foreign_remit', 'Foreign Remittance'),
 		('arg_in', 'Agricultural Income'),
 		])
+	no_of_months   = fields.Integer()
 	@api.onchange('amount','rate')
 	def _onchange_ftr_vals(self):
 		self.tax = self.amount * self.rate.rate

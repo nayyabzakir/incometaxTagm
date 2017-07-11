@@ -59,7 +59,16 @@ class capital_gain_tree(models.Model):
 	capital_gain   = fields.Float()
 	sold_value   = fields.Float()
 	remaining_value   = fields.Float()
-
+	no_of_months   = fields.Integer()
+	details = fields.Selection([
+		('aca', 'Accquired After 1.7.2012'),
+		('acb', 'Accquired Before 1.7.2012'),
+        ('pme', 'Pakistan Mercantile Exchange'),
+        ], string="Details")
+	im_sec_type = fields.Selection([
+		('imp', 'Immoveable Property'),
+		('sec', 'Securites'),
+        ], string="Type")
 	capital_gain_id = fields.Many2one('capital_gain.capital_gain', 'Capital ID')
 
 
