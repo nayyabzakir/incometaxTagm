@@ -10,11 +10,13 @@ class income_under_ntr(models.Model):
 
 	description = fields.Char()
 	amount      = fields.Float()
+	min_wh      = fields.Float('Min Tax WH')
 	tax_type    = fields.Selection([
 		('ntr', 'NTR'),
 		('ftr', 'FTR'),
 		('exempt', 'Exempt'),
 		('minimum', 'Minimum'),
+		('bahbood', 'Bahbood/PBA'),
 		])
 
 	receipt_type = fields.Selection([
@@ -25,6 +27,7 @@ class income_under_ntr(models.Model):
 		('cgt', 'CGT'),
 		('foreign_remit', 'Foreign Remittance'),
 		('arg_in', 'Agricultural Income'),
+		('sh_aop', 'Share From AOP'),
 		])
 	sub_tax_type    = fields.Selection([
 		('nor', 'NTR'),

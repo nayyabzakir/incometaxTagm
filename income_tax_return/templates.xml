@@ -718,6 +718,7 @@
                                                     <field name="tax_type"/>
                                                     <field name="amount" sum="Total"/>
                                                     <field name="no_of_months"/>
+                                                    <field name="min_wh"/>
                                                 </tree>
                                             </field>
 
@@ -841,58 +842,69 @@
 
                                         <page string="Tax Computing" colspan="4">
                                             <group name="tax_sub_type" string="Tax Computation" col="2">
-                                                <field name="tc_salary"/>
-                                                <field name="tc_business"/>
-                                                <field name="tc_property"/>
-                                                <field name="tc_other_sources"/>
-                                                <field name="tc_cgt"/>
-                                                <field name="tc_for_remit"/>
-                                                <field name="tc_arg_in"/>
-                                                <field name="tc_total_income"/>
-                                                <field name="tc_less_exempt"/>
-                                                <field name="tc_less_ftr"/>
-                                                <field name="tc_ftr_exempt_diff"/>
-                                                <field name="tc_less_ded_allowed"/>
-                                                <field name="tc_fe_ded_diff"/>
-                                                <field name="tc_less_cap_gain"/>
-                                                <field name="tc_less_property"/>
-                                                <field name="tc_ntr"/>
-                                                <field name="tc_tax_liabilty"/>
-                                                <field name="tc_tax_already_ded"/>
-                                                <field name="tc_tax_credits"/>
-                                                <field name="tc_tax_pay_refund"/>
-                                                <field name="tc_income_charg_uftr"/>
-                                                <field name="tc_tax_charge_ftr"/>
-                                                <field name="tc_tax_deduct_ftr"/>
-                                                <field name="tc_pay_refund_uftr"/>
-                                                <field name="tc_income_from_prp"/>
-                                                <field name="tc_taxable_ifd"/>
-                                                <field name="tc_taxable_ifp"/>
-                                                <field name="tc_tax_liability_ifd"/>
-                                                <field name="tc_ifp_ded"/>
-                                                <field name="tc_ifp_pay_refund"/>
-                                                <field name="tc_capital_gain"/>
-                                                <!-- <field name="tc_exmt_cg"/> -->
-                                                <field name="tc_cgt_ded"/>
-                                                <field name="tc_balnc_taxable"/>
-                                                <field name="tc_tax_pay_cg"/>
-                                                <field name="tc_tax_paid_cg"/>
-                                                <field name="tc_cgt_pay_refund"/>
-                                                <field name="tc_ttl_ntr"/>
-                                                <field name="tc_ttl_ftr"/>
-                                                <field name="tc_ttl_sbi"/>
-                                                <field name="tc_total_tax_lib"/>
-                                                <field name="tc_ttd_ntr"/>
-                                                <field name="tc_ttd_ftr"/>
-                                                <field name="tc_ttd_sbi"/>
-                                                <field name="tc_total_tax_ded"/>
-                                                <field name="tc_final_pay_refund"/>
-                                                <field name="tc_capital_gain_s"/>
-                                                <field name="tc_cgt_ded_s"/>
-                                                <field name="tc_balnc_taxable_s"/>
-                                                <field name="tc_tax_pay_cg_s"/>
-                                                <field name="tc_tax_paid_cg_s"/>
-                                                <field name="tc_cgt_pay_refund_s"/>
+                                            </group>
+                                            <group name="tax_sub_type_top">
+                                                <group name="tax_sub_type_left">
+                                                    <field name="tc_salary"/>
+                                                    <field name="tc_business"/>
+                                                    <field name="tc_property"/>
+                                                    <field name="tc_other_sources"/>
+                                                    <field name="tc_cgt"/>
+                                                    <field name="tc_for_remit"/>
+                                                    <field name="tc_arg_in"/>
+                                                    <field name="tc_share_aop"/>
+                                                    <field name="tc_total_income"/>
+                                                    <field name="tc_less_exempt"/>
+                                                    <field name="tc_less_sbi"/>
+                                                    <field name="tc_less_ftr"/>
+                                                    <field name="tc_ftr_exempt_diff"/>
+                                                    <field name="tc_less_ded_allowed"/>
+    <!--                                                 <field name="tc_fe_ded_diff"/>
+                                                    <field name="tc_less_cap_gain"/>
+                                                    <field name="tc_less_property"/> -->
+                                                    <field name="tc_ntr"/>
+                                                    <field name="tc_tax_liabilty"/>
+                                                    <field name="tc_tax_already_ded"/>
+                                                    <field name="tc_tax_credits"/>
+                                                    <field name="tc_tax_pay_refund"/>
+                                                    <field name="tc_income_charg_uftr"/>
+                                                    <field name="tc_tax_charge_ftr"/>
+                                                    <field name="tc_tax_deduct_ftr"/>
+                                                    <field name="tc_pay_refund_uftr"/>
+                                                    <field name="tc_income_from_prp"/>
+                                                    <field name="tc_taxable_ifd"/>
+                                                    <field name="tc_taxable_ifp"/>
+                                                    <field name="tc_tax_liability_ifd"/>
+                                                    <field name="tc_ifp_ded"/>
+                                                    <field name="tc_ifp_pay_refund"/>
+                                                    <field name="tc_capital_gain"/>
+                                                    <!-- <field name="tc_exmt_cg"/> -->
+                                                    <field name="tc_cgt_ded"/>
+                                                    <field name="tc_balnc_taxable"/>
+                                                    <field name="tc_tax_pay_cg"/>
+                                                    <field name="tc_tax_paid_cg"/>
+                                                    <field name="tc_cgt_pay_refund"/>
+                                                    <field name="tc_ttl_ntr"/>
+                                                    <field name="tc_ttl_ftr"/>
+                                                    <field name="tc_ttl_sbi"/>
+                                                    <field name="tc_total_tax_lib"/>
+                                                    <field name="tc_ttd_ntr"/>
+                                                    <field name="tc_ttd_ftr"/>
+                                                    <field name="tc_ttd_sbi"/>
+                                                    <field name="tc_total_tax_ded"/>
+                                                    <field name="tc_final_pay_refund"/>
+                                                    <field name="tc_capital_gain_s"/>
+                                                    <field name="tc_cgt_ded_s"/>
+                                                    <field name="tc_balnc_taxable_s"/>
+                                                    <field name="tc_tax_pay_cg_s"/>
+                                                    <field name="tc_tax_paid_cg_s"/>
+                                                    <field name="tc_cgt_pay_refund_s"/>
+                                                </group>
+                                                <group name="tax_sub_type_right">
+                                                    <field name="tc_bahbood"/>
+                                                    <field name="tc_minimum"/>
+                                                    <field name="tc_turnover"/>
+                                                </group>
                                             </group>
                                         </page>
                                         <page string="Tax Credit" colspan="4">

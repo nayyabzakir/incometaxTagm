@@ -29,7 +29,7 @@ class income_under_ftr(models.Model):
 	no_of_months   = fields.Integer()
 	@api.onchange('amount','rate')
 	def _onchange_ftr_vals(self):
-		self.tax = self.amount * self.rate.rate
+		self.tax = self.amount * (self.rate.rate /100)
 
 	income_under_ftr_id = fields.Many2one('tax.computation',ondelete='cascade')
 

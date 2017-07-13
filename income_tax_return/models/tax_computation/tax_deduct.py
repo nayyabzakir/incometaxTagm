@@ -14,8 +14,8 @@ class tax_deduct(models.Model):
 	tax_type    = fields.Selection([
         ('adjustable', 'Adjustable'),
         ('minimum', 'Minimum'),
-		('tax_ftr', 'Tax FTR'),
-		('deductible_allowance', 'Deductible Allowance')
+		('tax_ftr', 'FTR'),
+		('sbi', 'SBI')
         ])
 
 	sub_type = fields.Selection([
@@ -23,7 +23,8 @@ class tax_deduct(models.Model):
             ('bus', 'Business'),
             ('property', 'Property'),
             ('oth_sour', 'Other Sources'),
-            ('cgt', 'CGT'),
+            ('cgtim', 'CGT  (IMV)'),
+            ('cgtsec', 'CGT  (Sec)'),
             ])
 
 	tax_deduct_id = fields.Many2one('tax.computation',
