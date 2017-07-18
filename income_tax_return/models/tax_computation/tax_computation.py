@@ -279,6 +279,8 @@ class tax_computation(models.Model):
 						'tax_credits_id' : self.id,
 						})
 
+
+
 	def getBusinessProfit(self):
 		if self.pnl_computation:
 			for line in self.pnl_computation:
@@ -500,6 +502,7 @@ class tax_computation(models.Model):
 		att_min_tax = 0
 		diff_lib = 0
 		lib_amount = 0
+		lib_bahbood = 0
 		business_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type!='arg_in' and line.receipt_type!='foreign_remit'and line.receipt_type!='sal')
 		salary_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sal')
 		vi_lib_amount = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'minimum')
@@ -515,13 +518,20 @@ class tax_computation(models.Model):
 					tax_rate = (tax_amount / self.tc_ntr) / 100
 					actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
 					avg_rate = actual_liabilty/ self.tc_ntr
+					self.createTCShareAop(avg_rate)
 					for line in self.tax_computation_ntr_id:
 						if line.tax_type == 'minimum':
 							att_min_tax = line.amount * avg_rate
 							diff_lib =  line.min_wh - att_min_tax
 							if diff_lib > 0:
 								lib_amount += diff_lib
-					self.tc_tax_liabilty = lib_amount + actual_liabilty
+						if line.tax_type == 'bahbood':
+							bahbood_tax = line.amount * avg_rate
+							bahbood_10 = line.amount * 0.1
+							bahbood_diff = bahbood_tax - bahbood_10
+							if bahbood_diff > 0:
+								lib_bahbood += bahbood_diff
+					self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood 
 								
 
 		else:
@@ -535,14 +545,37 @@ class tax_computation(models.Model):
 					tax_rate = (tax_amount / self.tc_ntr) / 100
 					actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
 					avg_rate = actual_liabilty/ self.tc_ntr
+					self.createTCShareAop(avg_rate)
 					for line in self.tax_computation_ntr_id:
 						if line.tax_type == 'minimum':
 							att_min_tax = line.amount * avg_rate
 							diff_lib =  line.min_wh - att_min_tax
-							if line.min_wh > diff_lib:
+							if diff_lib > 0:
 								lib_amount += diff_lib
-					self.tc_tax_liabilty = lib_amount + actual_liabilty
+						if line.tax_type == 'bahbood':
+							bahbood_tax = line.amount * avg_rate
+							bahbood_10 = line.amount * 0.1
+							bahbood_diff = bahbood_tax - bahbood_10
+							if bahbood_diff > 0:
+								lib_bahbood += bahbood_diff
+					self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood
 
+	def createTCShareAop(self, avg_rate):
+		if self.tc_share_aop:
+			tc_record = self.tax_credits_id.search([('description','=','Share of AOP')])
+			if tc_record:
+				if line.rate != 0:
+					tc_record.amount = self.tc_share_aop
+					tc_record.rate = avg_rate
+					tc_record.tax = self.tc_share_aop * (avg_rate)
+			else:
+				self.tax_credits_id.create({
+					'description' : 'Share of AOP',
+					'amount' : self.tc_share_aop,
+					'tax_credits_id' : self.id,
+					'rate' : avg_rate,
+					'tax' : self.tc_share_aop * (avg_rate),
+					})
 
 	@api.multi
 	def virtual_tax_minimum(self):

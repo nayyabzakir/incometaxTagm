@@ -40,7 +40,8 @@ class pnl_computation(models.Model):
 	accounting_depreciation = fields.Float(string="Acc Depreciation")
 	inadmissible_expenses   = fields.Float(string="In admissible Expenses")
 	tax_depreciation	    = fields.Float(string="Tax Depreciation")
-	tax_profit              = fields.Float(string="Tax Profit")
+	tax_profit              = fields.Float(string="Tax Profit (NTR)")
+	tax_profit_min          = fields.Float(string="Tax Profit (Minimum)")
 	income_under_ftr        = fields.Float(string="Income under FTR")
 	tax_deduct              = fields.Float(string="Tax deducted")
 	description             = fields.Text()
@@ -60,15 +61,17 @@ class pnl_computation(models.Model):
 	ftr_tax_depreciation	    = fields.Float(string="Tax Depreciation")
 	ftr_tax_profit              = fields.Float(string="Tax Profit")
 	ftr_cost_of_sales			= fields.Float(string="Cost of Sales")
+	rateoftaxes					= fields.Float(string="Rate of Minimum Tax")
+	ntr_min_sales				= fields.Float(string="Minimum Sales")
 
 
-	profit_loss_link_id     = fields.One2many('profit_loss.profit_loss', 'profit_loss_ids')
-
-	accounting_depreciation_ids     = fields.One2many('pnl.accounting.depreciation', 'accounting_depreciation_id')
-	accounting_tax_ids    = fields.One2many('pnl.tax.depreciation', 'accounting_tax_id')
-
-	pnl_acc_dep_sum_ids     = fields.One2many('pnl.accounting.depreciation.summary', 'pnl_acc_dep_sum_id')
-	pnl_tax_dep_sum_ids    = fields.One2many('pnl.tax.depreciation.summary', 'pnl_tax_dep_sum_id')
+	profit_loss_link_id     	= fields.One2many('profit_loss.profit_loss', 'profit_loss_ids')
+	accounting_depreciation_ids = fields.One2many('pnl.accounting.depreciation', 'accounting_depreciation_id')
+	accounting_tax_ids    		= fields.One2many('pnl.tax.depreciation', 'accounting_tax_id')
+	pnl_acc_dep_sum_ids     	= fields.One2many('pnl.accounting.depreciation.summary', 'pnl_acc_dep_sum_id')
+	pnl_tax_dep_sum_ids    		= fields.One2many('pnl.tax.depreciation.summary', 'pnl_tax_dep_sum_id')
+	minimum_tax_ids    			= fields.One2many('minimumtax.minimumtax', 'minimum_tax_id')
+	final_tax_ids    			= fields.One2many('finaltax.finaltax', 'final_tax_id')
 
 
 	@api.onchange('accounting_depreciation_ids')
@@ -129,6 +132,7 @@ class pnl_computation(models.Model):
 		self.inadmissible_expenses =  sum(line.ntr for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
 		self.ntr_profit_Loss = self.gross_profit - self.ntr_expense
 		self.tax_profit = self.ntr_profit_Loss + self.accounting_depreciation  + self.inadmissible_expenses - self.tax_depreciation
+		self.tax_profit_min = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * self.ntr_min_sales
 
 
 
@@ -151,10 +155,19 @@ class pnl_computation(models.Model):
 		self.update_opening()
 		self.update_tax_depriciation()
 		self.update_capital_amount()
+		self.getFinalTax()
+		self.getMinTax()
 
 
+	def getFinalTax(self):
+		if self.final_tax_ids:
+			for line in self.final_tax_ids:
+				line.profit = (self.tax_profit / (self.sale_under_ntr + sum(rec.sales for rec in self.final_tax_ids))) * line.sales
 
-
+	def getMinTax(self):
+		if self.minimum_tax_ids:
+			for line in self.minimum_tax_ids:
+				line.profit = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * line.sales
 
 	@api.multi
 	def update_opening(self):

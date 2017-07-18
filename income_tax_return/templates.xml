@@ -801,36 +801,7 @@
                                             </field>
                                         </page>
                                         <page string="Profit and Loss">
-                           <!--                  <group name="group_left" string="Ratio of Income">
-                                                <group name="left">
-                                                    <field name="total_sale"/>
-                                                    <field name="sale_under_ntr"/>
-                                                    <field name="sale_under_ftr"/>
-                                                </group>
-                                                <group name="right">
-                                                    <button name="update" type="object" string="⇒ Update" class="oe_button oe_form_button oe_link"/>
-                                                </group>
-                                            </group>
-                                            <group>
-                                                <group name="group_left" string="Profit and Loss NTR">
-                                                    <field name="ntr_income"/>
-                                                    <field name="gross_profit"/>
-                                                    <field name="ntr_expense"/>
-                                                    <field name="ntr_profit_Loss"/>
-                                                    <field name="accounting_depreciation"/>
-                                                    <field name="inadmissible_expenses"/>
-                                                    <field name="tax_depreciation"/>
-                                                    <field name="tax_profit"/>
-                                                </group>
-                                                <group name="group_right" string="Cost of Sales">
-                                                    <field name="purchases"/>
-                                                    <field name="opening"/>
-                                                    <field name="closing"/>
-                                                    <field name="cost_of_sales"/>
-                                                </group>
-                                            </group>
-                                            <group name="profit_and_loss" string="Profit and Loss">
-                                            </group> -->
+
                                             <field name="pnl_computation">
                                                 <tree editable="bottom">
                                                     <field name="business_name" domain="[('name.customer','=','asdasdasdaacasdfadf')]" context="{'default_client_name': parent.client_name,'default_tax_year': parent.tax_year,'default_comparative_wealth':parent.comparative_id}"/>
@@ -1257,11 +1228,13 @@
                                 <field name="tax_year" />
                                 <field name="comparative_wealth" />
                                 <field name="pnl_computation" domain="[('client_name','=',client_name)]"/>
+                                <field name="rateoftaxes" />
                             </group>
                             <group>
                                             <group name="group_left" string="Ratio of Income">
                                                     <field name="total_sale"/>
                                                     <field name="sale_under_ntr"/>
+                                                    <field name="ntr_min_sales"/>
                                                     <field name="sale_under_ftr"/>
                                                     <field name="other_sale_under_ntr"/>
                                                     <field name="other_sale_under_ftr"/>
@@ -1275,11 +1248,7 @@
                                                     <field name="cost_of_sales"/>
                                                 </group>
                                             </group>
-<!-- 
-                                                <group name="right">
-                                                    <button name="update" type="object" string="⇒ Update" class="oe_button oe_form_button oe_link"/>
-                                                </group> -->
-                                            <!-- </group> -->
+
                                             <group>
                                                 <group name="group_left" string="Profit and Loss NTR">
                                                     <field name="ntr_income"/>
@@ -1292,6 +1261,7 @@
                                                     <field name="inadmissible_expenses"/>
                                                     <field name="tax_depreciation"/>
                                                     <field name="tax_profit"/>
+                                                    <field name="tax_profit_min"/>
                                                 </group>
                                                 <group name="group_right" string="Profit and Loss FTR">
                                                     <field name="ftr_income"/>
@@ -1329,12 +1299,33 @@
                                                             <field name="capital_drawing"/>
                                                             <field name="capital_closing"/>
                                                         </group>
-<!--                                                         <group name="group_right" >
-                                                            <button name="update_opening" type="object" string="⇒ Fetch Records" class="oe_button oe_form_button oe_link"/>
-                                                        </group> -->
-                                                    
                                                     </group>
                                                 </page>
+
+                                                <page name="minimum_tax" string="Minimum Tax">
+                                                    <field name="minimum_tax_ids">
+                                                        <tree editable="bottom">
+                                                            <field name="description"/>
+                                                            <field name="sales"/>
+                                                            <field name="rate"/> 
+                                                            <field name="profit"/>
+                                                            <field name="tax"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+
+                                                <page name="final_tax" string="Final Tax">
+                                                    <field name="final_tax_ids">
+                                                        <tree editable="bottom">
+                                                            <field name="description"/>
+                                                            <field name="sales"/>
+                                                            <field name="rate"/> 
+                                                            <field name="profit"/>
+                                                            <field name="tax"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+
                                                 <page name="acc_depr" string="Accounting Depreciation">
                                                     <group name="top">
                                                         <group name="group_left">
