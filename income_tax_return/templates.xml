@@ -718,6 +718,7 @@
                                                     <field name="tax_type"/>
                                                     <field name="amount" sum="Total"/>
                                                     <field name="no_of_months"/>
+                                                    <field name="min_wh"/>
                                                 </tree>
                                             </field>
 
@@ -800,36 +801,7 @@
                                             </field>
                                         </page>
                                         <page string="Profit and Loss">
-                           <!--                  <group name="group_left" string="Ratio of Income">
-                                                <group name="left">
-                                                    <field name="total_sale"/>
-                                                    <field name="sale_under_ntr"/>
-                                                    <field name="sale_under_ftr"/>
-                                                </group>
-                                                <group name="right">
-                                                    <button name="update" type="object" string="⇒ Update" class="oe_button oe_form_button oe_link"/>
-                                                </group>
-                                            </group>
-                                            <group>
-                                                <group name="group_left" string="Profit and Loss NTR">
-                                                    <field name="ntr_income"/>
-                                                    <field name="gross_profit"/>
-                                                    <field name="ntr_expense"/>
-                                                    <field name="ntr_profit_Loss"/>
-                                                    <field name="accounting_depreciation"/>
-                                                    <field name="inadmissible_expenses"/>
-                                                    <field name="tax_depreciation"/>
-                                                    <field name="tax_profit"/>
-                                                </group>
-                                                <group name="group_right" string="Cost of Sales">
-                                                    <field name="purchases"/>
-                                                    <field name="opening"/>
-                                                    <field name="closing"/>
-                                                    <field name="cost_of_sales"/>
-                                                </group>
-                                            </group>
-                                            <group name="profit_and_loss" string="Profit and Loss">
-                                            </group> -->
+
                                             <field name="pnl_computation">
                                                 <tree editable="bottom">
                                                     <field name="business_name" domain="[('name.customer','=','asdasdasdaacasdfadf')]" context="{'default_client_name': parent.client_name,'default_tax_year': parent.tax_year,'default_comparative_wealth':parent.comparative_id}"/>
@@ -841,58 +813,69 @@
 
                                         <page string="Tax Computing" colspan="4">
                                             <group name="tax_sub_type" string="Tax Computation" col="2">
-                                                <field name="tc_salary"/>
-                                                <field name="tc_business"/>
-                                                <field name="tc_property"/>
-                                                <field name="tc_other_sources"/>
-                                                <field name="tc_cgt"/>
-                                                <field name="tc_for_remit"/>
-                                                <field name="tc_arg_in"/>
-                                                <field name="tc_total_income"/>
-                                                <field name="tc_less_exempt"/>
-                                                <field name="tc_less_ftr"/>
-                                                <field name="tc_ftr_exempt_diff"/>
-                                                <field name="tc_less_ded_allowed"/>
-                                                <field name="tc_fe_ded_diff"/>
-                                                <field name="tc_less_cap_gain"/>
-                                                <field name="tc_less_property"/>
-                                                <field name="tc_ntr"/>
-                                                <field name="tc_tax_liabilty"/>
-                                                <field name="tc_tax_already_ded"/>
-                                                <field name="tc_tax_credits"/>
-                                                <field name="tc_tax_pay_refund"/>
-                                                <field name="tc_income_charg_uftr"/>
-                                                <field name="tc_tax_charge_ftr"/>
-                                                <field name="tc_tax_deduct_ftr"/>
-                                                <field name="tc_pay_refund_uftr"/>
-                                                <field name="tc_income_from_prp"/>
-                                                <field name="tc_taxable_ifd"/>
-                                                <field name="tc_taxable_ifp"/>
-                                                <field name="tc_tax_liability_ifd"/>
-                                                <field name="tc_ifp_ded"/>
-                                                <field name="tc_ifp_pay_refund"/>
-                                                <field name="tc_capital_gain"/>
-                                                <!-- <field name="tc_exmt_cg"/> -->
-                                                <field name="tc_cgt_ded"/>
-                                                <field name="tc_balnc_taxable"/>
-                                                <field name="tc_tax_pay_cg"/>
-                                                <field name="tc_tax_paid_cg"/>
-                                                <field name="tc_cgt_pay_refund"/>
-                                                <field name="tc_ttl_ntr"/>
-                                                <field name="tc_ttl_ftr"/>
-                                                <field name="tc_ttl_sbi"/>
-                                                <field name="tc_total_tax_lib"/>
-                                                <field name="tc_ttd_ntr"/>
-                                                <field name="tc_ttd_ftr"/>
-                                                <field name="tc_ttd_sbi"/>
-                                                <field name="tc_total_tax_ded"/>
-                                                <field name="tc_final_pay_refund"/>
-                                                <field name="tc_capital_gain_s"/>
-                                                <field name="tc_cgt_ded_s"/>
-                                                <field name="tc_balnc_taxable_s"/>
-                                                <field name="tc_tax_pay_cg_s"/>
-                                                <field name="tc_tax_paid_cg_s"/>
-                                                <field name="tc_cgt_pay_refund_s"/>
+                                            </group>
+                                            <group name="tax_sub_type_top">
+                                                <group name="tax_sub_type_left">
+                                                    <field name="tc_salary"/>
+                                                    <field name="tc_business"/>
+                                                    <field name="tc_property"/>
+                                                    <field name="tc_other_sources"/>
+                                                    <field name="tc_cgt"/>
+                                                    <field name="tc_for_remit"/>
+                                                    <field name="tc_arg_in"/>
+                                                    <field name="tc_share_aop"/>
+                                                    <field name="tc_total_income"/>
+                                                    <field name="tc_less_exempt"/>
+                                                    <field name="tc_less_sbi"/>
+                                                    <field name="tc_less_ftr"/>
+                                                    <field name="tc_ftr_exempt_diff"/>
+                                                    <field name="tc_less_ded_allowed"/>
+    <!--                                                 <field name="tc_fe_ded_diff"/>
+                                                    <field name="tc_less_cap_gain"/>
+                                                    <field name="tc_less_property"/> -->
+                                                    <field name="tc_ntr"/>
+                                                    <field name="tc_tax_liabilty"/>
+                                                    <field name="tc_tax_already_ded"/>
+                                                    <field name="tc_tax_credits"/>
+                                                    <field name="tc_tax_pay_refund"/>
+                                                    <field name="tc_income_charg_uftr"/>
+                                                    <field name="tc_tax_charge_ftr"/>
+                                                    <field name="tc_tax_deduct_ftr"/>
+                                                    <field name="tc_pay_refund_uftr"/>
+                                                    <field name="tc_income_from_prp"/>
+                                                    <field name="tc_taxable_ifd"/>
+                                                    <field name="tc_taxable_ifp"/>
+                                                    <field name="tc_tax_liability_ifd"/>
+                                                    <field name="tc_ifp_ded"/>
+                                                    <field name="tc_ifp_pay_refund"/>
+                                                    <field name="tc_capital_gain"/>
+                                                    <!-- <field name="tc_exmt_cg"/> -->
+                                                    <field name="tc_cgt_ded"/>
+                                                    <field name="tc_balnc_taxable"/>
+                                                    <field name="tc_tax_pay_cg"/>
+                                                    <field name="tc_tax_paid_cg"/>
+                                                    <field name="tc_cgt_pay_refund"/>
+                                                    <field name="tc_ttl_ntr"/>
+                                                    <field name="tc_ttl_ftr"/>
+                                                    <field name="tc_ttl_sbi"/>
+                                                    <field name="tc_total_tax_lib"/>
+                                                    <field name="tc_ttd_ntr"/>
+                                                    <field name="tc_ttd_ftr"/>
+                                                    <field name="tc_ttd_sbi"/>
+                                                    <field name="tc_total_tax_ded"/>
+                                                    <field name="tc_final_pay_refund"/>
+                                                    <field name="tc_capital_gain_s"/>
+                                                    <field name="tc_cgt_ded_s"/>
+                                                    <field name="tc_balnc_taxable_s"/>
+                                                    <field name="tc_tax_pay_cg_s"/>
+                                                    <field name="tc_tax_paid_cg_s"/>
+                                                    <field name="tc_cgt_pay_refund_s"/>
+                                                </group>
+                                                <group name="tax_sub_type_right">
+                                                    <field name="tc_bahbood"/>
+                                                    <field name="tc_minimum"/>
+                                                    <field name="tc_turnover"/>
+                                                </group>
                                             </group>
                                         </page>
                                         <page string="Tax Credit" colspan="4">
@@ -1245,11 +1228,13 @@
                                 <field name="tax_year" />
                                 <field name="comparative_wealth" />
                                 <field name="pnl_computation" domain="[('client_name','=',client_name)]"/>
+                                <field name="rateoftaxes" />
                             </group>
                             <group>
                                             <group name="group_left" string="Ratio of Income">
                                                     <field name="total_sale"/>
                                                     <field name="sale_under_ntr"/>
+                                                    <field name="ntr_min_sales"/>
                                                     <field name="sale_under_ftr"/>
                                                     <field name="other_sale_under_ntr"/>
                                                     <field name="other_sale_under_ftr"/>
@@ -1263,11 +1248,7 @@
                                                     <field name="cost_of_sales"/>
                                                 </group>
                                             </group>
-<!-- 
-                                                <group name="right">
-                                                    <button name="update" type="object" string="⇒ Update" class="oe_button oe_form_button oe_link"/>
-                                                </group> -->
-                                            <!-- </group> -->
+
                                             <group>
                                                 <group name="group_left" string="Profit and Loss NTR">
                                                     <field name="ntr_income"/>
@@ -1280,6 +1261,7 @@
                                                     <field name="inadmissible_expenses"/>
                                                     <field name="tax_depreciation"/>
                                                     <field name="tax_profit"/>
+                                                    <field name="tax_profit_min"/>
                                                 </group>
                                                 <group name="group_right" string="Profit and Loss FTR">
                                                     <field name="ftr_income"/>
@@ -1317,12 +1299,33 @@
                                                             <field name="capital_drawing"/>
                                                             <field name="capital_closing"/>
                                                         </group>
-<!--                                                         <group name="group_right" >
-                                                            <button name="update_opening" type="object" string="⇒ Fetch Records" class="oe_button oe_form_button oe_link"/>
-                                                        </group> -->
-                                                    
                                                     </group>
                                                 </page>
+
+                                                <page name="minimum_tax" string="Minimum Tax">
+                                                    <field name="minimum_tax_ids">
+                                                        <tree editable="bottom">
+                                                            <field name="description"/>
+                                                            <field name="sales"/>
+                                                            <field name="rate"/> 
+                                                            <field name="profit"/>
+                                                            <field name="tax"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+
+                                                <page name="final_tax" string="Final Tax">
+                                                    <field name="final_tax_ids">
+                                                        <tree editable="bottom">
+                                                            <field name="description"/>
+                                                            <field name="sales"/>
+                                                            <field name="rate"/> 
+                                                            <field name="profit"/>
+                                                            <field name="tax"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+
                                                 <page name="acc_depr" string="Accounting Depreciation">
                                                     <group name="top">
                                                         <group name="group_left">

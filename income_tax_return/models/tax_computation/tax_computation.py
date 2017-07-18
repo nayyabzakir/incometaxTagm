@@ -53,8 +53,10 @@ class tax_computation(models.Model):
 	tc_cgt           	= fields.Float(string="5 CGT")
 	tc_for_remit        = fields.Float(string="6 Foreign Remittance")
 	tc_arg_in           = fields.Float(string="7 Agricultural Income")
+	tc_share_aop        = fields.Float(string="7.5 Share From AOP")
 	tc_total_income     = fields.Float(string="8 Total Income")
 	tc_less_exempt		= fields.Float(string="9 Less Exempt")
+	tc_less_sbi			= fields.Float(string="9.5 Less SBI")
 	tc_less_ftr			= fields.Float(string="10 Less FTR")
 	tc_ftr_exempt_diff	= fields.Float(string="11 Total")
 	tc_less_ded_allowed	= fields.Float(string="12 Less Deductable Allowance ")
@@ -99,6 +101,9 @@ class tax_computation(models.Model):
 	tc_tax_pay_cg_s		= fields.Float(string="49 Tax Payable on CG Securities" )
 	tc_tax_paid_cg_s	= fields.Float(string="50 Tax Paid on CG Securities")
 	tc_cgt_pay_refund_s	= fields.Float(string="51 CGT Payable / (Refundable) Securities")
+	tc_bahbood			= fields.Float(string="52 Bahbood")
+	tc_minimum			= fields.Float(string="53 Minimum")
+	tc_turnover			= fields.Float(string="54 Turnover")
 
 	# tc_sca 				= fields.Boolean(string="Senior Citizen Allowance")
 	# tc_fta 				= fields.Boolean(string="Full time Teacher Allowance")
@@ -175,30 +180,31 @@ class tax_computation(models.Model):
 
 	@api.multi
 	def update_computation(self):
-		self.tax_computation_ntr_id.unlink()
-		self.tax_computation_ftr_id.unlink()
-		self.tax_deduct_link_id.unlink()
-		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+		# self.tax_computation_ntr_id.unlink()
+		# self.tax_computation_ftr_id.unlink()
+		# self.tax_deduct_link_id.unlink()
+		# required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
-		self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
-		self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
-		self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
-		self.income_under_ftr = sum(line.amount for line in self.tax_computation_ftr_id)
-		self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'adjustable')
-		self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
-		self.taxable_income = self.income_under_ntr - self.deductible_allowance
-		self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
-		self.createIncomeUNTR()
-		self.createIncomeUFTR()
-		self.createTaxDeducted()
-		self.createIncomeUExempt()
-		self.createDedAllowance()
-		self.createSBI()
-		self.updateCGTAmount()
-		self.calculateTaxSBI()
-		self.getBusinessProfit()
-		self.computeTaxCredit()
+		# self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
+		# self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
+		# self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
+		# self.income_under_ftr = sum(line.amount for line in self.tax_computation_ftr_id)
+		# self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'adjustable')
+		# self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
+		# self.taxable_income = self.income_under_ntr - self.deductible_allowance
+		# self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
+		# self.createIncomeUNTR()
+		# self.createIncomeUFTR()
+		# self.createTaxDeducted()
+		# self.createIncomeUExempt()
+		# self.createDedAllowance()
+		# self.createSBI()
+		# self.updateCGTAmount()
+		# self.calculateTaxSBI()
+		# self.getBusinessProfit()
+		# self.computeTaxCredit()
 		self.getTaxCompDetails()
+		self.get_tax_rate()
 
 
 	def getTaxCompDetails(self):
@@ -208,33 +214,38 @@ class tax_computation(models.Model):
 		# self.tc_less_property =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='property') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='property')
 		self.tc_less_property =  0
 		self.tc_other_sources =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='oth_sour') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='oth_sour')
-		self.tc_cgt =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='cgt')
+		self.tc_cgt =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='cgt') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='cgt') + sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='cgt')
 		self.tc_for_remit =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='foreign_remit') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='foreign_remit')
 		self.tc_arg_in =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='arg_in') + sum(line.amount for line in self.tax_computation_ftr_id if line.receipt_type =='arg_in') + sum(line.amount for line in self.tax_computation_exempt_id if line.sub_type =='arg_in')
-		self.tc_total_income=self.tc_salary+self.tc_business+self.tc_property+self.tc_other_sources+self.tc_cgt+self.tc_for_remit+self.tc_arg_in
+		self.tc_share_aop =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sh_aop')
+		self.tc_total_income=self.tc_salary+self.tc_business+self.tc_property+self.tc_other_sources+self.tc_cgt+self.tc_for_remit+self.tc_arg_in+self.tc_share_aop
 		self.tc_less_exempt =   sum(line.amount for line in self.tax_computation_exempt_id)
 		self.tc_less_ftr =  sum(line.amount for line in self.tax_computation_ftr_id)
-		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type in ['sal','bus','oth_sour'])
+		# self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type in ['sal','bus','oth_sour']) change_commentd--
+		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable')
 		self.tc_tax_credits = sum(line.tax for line in self.tax_credits_id)
 		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded - self.tc_tax_credits
 		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'NTR')
 		self.tc_taxable_ifd =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'Property')
-		self.tc_cgt_ded =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'CGT')
-		self.tc_ftr_exempt_diff =  self.tc_total_income - self.tc_less_exempt - self.tc_less_ftr
+		self.tc_cgt_ded =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'CGT (IMV)')
+		self.tc_cgt_ded_s = sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'CGT (SEC)')
+		self.tc_less_sbi = sum(line.amount for line in self.tax_computation_sbi_id)
+		self.tc_ftr_exempt_diff =  self.tc_total_income - self.tc_less_exempt - self.tc_less_sbi - self.tc_less_ftr
 		self.tc_fe_ded_diff =  self.tc_ftr_exempt_diff - self.tc_less_ded_allowed
 		self.tc_less_cap_gain = 0
 		# self.tc_less_cap_gain = self.tc_cgt
 		self.tc_ntr = self.tc_fe_ded_diff - self.tc_less_cap_gain - self.tc_less_property
 		self.tc_income_charg_uftr = self.tc_less_ftr
 		self.tc_tax_deduct_ftr =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='tax_ftr')
-		self.tc_tax_charge_ftr =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='tax_ftr')
+		self.tc_tax_charge_ftr =  sum(line.tax for line in self.tax_computation_ftr_id)
 		self.tc_pay_refund_uftr =  self.tc_tax_charge_ftr - self.tc_tax_deduct_ftr
 		self.tc_income_from_prp =  sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='property')
 		self.tc_taxable_ifp =  self.tc_income_from_prp - self.tc_taxable_ifd
-		self.tc_tax_paid_cg =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type == 'cgt')
-		self.tc_ifp_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable' and line.sub_type == 'property')
+		self.tc_tax_paid_cg =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='sbi' and line.sub_type == 'cgtim')
+		self.tc_ifp_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='sbi' and line.sub_type == 'property')
 		self.tc_ifp_pay_refund = self.tc_tax_liability_ifd - self.tc_ifp_ded
-		self.tc_capital_gain = sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='cgt')
+		self.tc_capital_gain = sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='cgt' and line.im_sec_type == 'imp' )
+		self.tc_capital_gain_s = sum(line.amount for line in self.tax_computation_sbi_id if line.receipt_type =='cgt' and line.im_sec_type == 'sec' )
 		self.tc_balnc_taxable = self.tc_capital_gain - self.tc_cgt_ded
 		self.tc_cgt_pay_refund = self.tc_tax_pay_cg - self.tc_tax_paid_cg
 		self.tc_ttl_ntr = self.tc_tax_liabilty
@@ -246,6 +257,13 @@ class tax_computation(models.Model):
 		self.tc_ttd_sbi = self.tc_tax_paid_cg + self.tc_ifp_ded
 		self.tc_total_tax_ded = self.tc_ttd_ntr + self.tc_ttd_ftr + self.tc_ttd_sbi
 		self.tc_final_pay_refund = self.tc_total_tax_lib - self.tc_total_tax_ded
+
+		self.tc_balnc_taxable_s = self.tc_capital_gain_s - self.tc_cgt_ded_s
+		self.tc_tax_paid_cg_s = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='sbi' and line.sub_type == 'cgtsec')
+		self.tc_cgt_pay_refund_s = self.tc_tax_pay_cg_s - self.tc_tax_paid_cg_s
+
+
+
 
 	def computeTaxCredit(self):
 		if self.tax_cr_tree_ids:
@@ -260,6 +278,8 @@ class tax_computation(models.Model):
 						'amount' : self.tc_tax_liabilty * line.rate,
 						'tax_credits_id' : self.id,
 						})
+
+
 
 	def getBusinessProfit(self):
 		if self.pnl_computation:
@@ -479,8 +499,14 @@ class tax_computation(models.Model):
 
 	@api.multi
 	def get_tax_rate(self):
+		att_min_tax = 0
+		diff_lib = 0
+		lib_amount = 0
+		lib_bahbood = 0
 		business_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type!='arg_in' and line.receipt_type!='foreign_remit'and line.receipt_type!='sal')
 		salary_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.receipt_type =='sal')
+		vi_lib_amount = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'minimum')
+		td_min_amount = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
 		if business_income > salary_income:
 			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
 			tax_rate_book = required_class.business_rates_table_ids
@@ -489,9 +515,24 @@ class tax_computation(models.Model):
 					fixed_tax = x.fixed_tax_amount                        #32000
 					taxable_amount = self.tc_ntr - x.amount_from   #100000
 					tax_amount = taxable_amount * x.rate_of_tax				   #15000
-					# self.tc_tax_liabilty =  fixed_tax + tax_amount 		 #47000
 					tax_rate = (tax_amount / self.tc_ntr) / 100
-					self.tc_tax_liabilty = self.tc_ntr * tax_rate + fixed_tax
+					actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
+					avg_rate = actual_liabilty/ self.tc_ntr
+					self.createTCShareAop(avg_rate)
+					for line in self.tax_computation_ntr_id:
+						if line.tax_type == 'minimum':
+							att_min_tax = line.amount * avg_rate
+							diff_lib =  line.min_wh - att_min_tax
+							if diff_lib > 0:
+								lib_amount += diff_lib
+						if line.tax_type == 'bahbood':
+							bahbood_tax = line.amount * avg_rate
+							bahbood_10 = line.amount * 0.1
+							bahbood_diff = bahbood_tax - bahbood_10
+							if bahbood_diff > 0:
+								lib_bahbood += bahbood_diff
+					self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood 
+								
 
 		else:
 			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
@@ -502,37 +543,44 @@ class tax_computation(models.Model):
 					taxable_amount = self.tc_ntr - x.amount_from # 100000
 					tax_amount = taxable_amount * x.rate_of_tax               #10000
 					tax_rate = (tax_amount / self.tc_ntr) / 100
-					self.tc_tax_liabilty = self.tc_ntr * tax_rate + fixed_tax
+					actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
+					avg_rate = actual_liabilty/ self.tc_ntr
+					self.createTCShareAop(avg_rate)
+					for line in self.tax_computation_ntr_id:
+						if line.tax_type == 'minimum':
+							att_min_tax = line.amount * avg_rate
+							diff_lib =  line.min_wh - att_min_tax
+							if diff_lib > 0:
+								lib_amount += diff_lib
+						if line.tax_type == 'bahbood':
+							bahbood_tax = line.amount * avg_rate
+							bahbood_10 = line.amount * 0.1
+							bahbood_diff = bahbood_tax - bahbood_10
+							if bahbood_diff > 0:
+								lib_bahbood += bahbood_diff
+					self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood
+
+	def createTCShareAop(self, avg_rate):
+		if self.tc_share_aop:
+			tc_record = self.tax_credits_id.search([('description','=','Share of AOP')])
+			if tc_record:
+				if line.rate != 0:
+					tc_record.amount = self.tc_share_aop
+					tc_record.rate = avg_rate
+					tc_record.tax = self.tc_share_aop * (avg_rate)
+			else:
+				self.tax_credits_id.create({
+					'description' : 'Share of AOP',
+					'amount' : self.tc_share_aop,
+					'tax_credits_id' : self.id,
+					'rate' : avg_rate,
+					'tax' : self.tc_share_aop * (avg_rate),
+					})
 
 	@api.multi
 	def virtual_tax_minimum(self):
-		business_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type!='exempt' and line.tax_type!='salary')
-		salary_income =  sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type =='salary')
-		virtual_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type !='minimum')
-		if business_income > salary_income:
-			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
-			tax_rate_book = required_class.business_rates_table_ids
-			for x in tax_rate_book:
-				if x.amount_from <= virtual_income <= x.amount_to:
-					taxable_amount = virtual_income - x.amount_from
-					tax_amount = taxable_amount * x.rate_of_tax/100
-					virtual_liability = tax_amount + x.fixed_tax_amount
-					self.portion_of_minimum_tax = self.tax_liability - virtual_liability
-					if self.portion_of_minimum_tax > self.tax_deduct_min:
-						self.payable_tax = self.tax_liability
-					elif self.portion_of_minimum_tax < self.tax_deduct_min:
-						self.payable_tax = self.tax_liability - self.portion_of_minimum_tax + self.tax_deduct_min
-					else:
-						return
-		else:
-			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
-			tax_rate_book = required_class.salaried_rates_table_ids
-			for x in tax_rate_book:
-				if x.amount_from <= virtual_income <= x.amount_to:
-					taxable_amount = virtual_income - x.amount_from
-					tax_amount = taxable_amount * x.rate_of_tax/100
-					virtual_liability = tax_amount + x.fixed_tax_amount
-					self.portion_of_minimum_tax = self.tax_liability - virtual_liability
+		print "cc"
+
 
 	@api.onchange('client_name','tax_year')
 	def _get_comparative(self):
