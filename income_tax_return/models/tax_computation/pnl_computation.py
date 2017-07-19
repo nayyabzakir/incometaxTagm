@@ -128,7 +128,7 @@ class pnl_computation(models.Model):
 		self.gross_profit = self.ntr_income - self.ntr_cost_of_sales
 		# self.accounting_depreciation =  sum(line.ntr for line in self.profit_loss_link_id if line.admissible =='depreciation')
 		self.ntr_cost_of_sales = self.cost_of_sales * (self.sale_under_ntr/self.total_sale)
-		self.ntr_expense =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='indirect_expenses') + self.accounting_depreciation 
+		self.ntr_expense =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible') 
 		self.inadmissible_expenses =  sum(line.ntr for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
 		self.ntr_profit_Loss = self.gross_profit - self.ntr_expense
 		self.tax_profit = self.ntr_profit_Loss + self.accounting_depreciation  + self.inadmissible_expenses - self.tax_depreciation
@@ -138,7 +138,7 @@ class pnl_computation(models.Model):
 
 		self.ftr_income =  self.sale_under_ftr + self.other_sale_under_ftr
 		self.ftr_cost_of_sales = self.cost_of_sales * (self.sale_under_ftr/self.total_sale) 
-		self.ftr_expense =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.types =='indirect_expenses')
+		self.ftr_expense =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible')
 		self.ftr_gross_profit = self.ftr_income - self.ftr_cost_of_sales
 		self.ftr_profit_Loss = self.ftr_gross_profit - self.ftr_expense
 		# self.ftr_accounting_depreciation =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.admissible =='depreciation')
@@ -180,11 +180,11 @@ class pnl_computation(models.Model):
 						for item in line.pnl_computation:
 							if item.business_name.name == self.name:
 								self.capital_opening = item.business_name.capital_closing
-		if self.tax_profit or self.ftr_tax_profit:
-			self.profit_for_period = self.tax_profit + self.ftr_tax_profit
+		# if self.tax_profit or self.ftr_tax_profit:
+		self.profit_for_period = self.tax_profit + self.ftr_tax_profit
 
-		if self.capital_opening or self.profit_for_period or self.capital_drawing:
-			self.capital_closing = (self.capital_opening + self.profit_for_period + self.capital_intro) - self.capital_drawing
+		# if self.capital_opening or self.profit_for_period or self.capital_drawing:
+		self.capital_closing = (self.capital_opening + self.profit_for_period + self.capital_intro) - self.capital_drawing
 
 ################################################### Send Capital Value To Compartive Wealth Blance Sheet ########################
 

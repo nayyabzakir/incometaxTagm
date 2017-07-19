@@ -1588,6 +1588,7 @@
                                     </group>
                                     <group name="group_right">
                                         <field name="receipts_ids" />
+                                        <field name="assets" />
                                         
                                     </group> 
                                 </group>

@@ -94,6 +94,10 @@ class comparative_wealth(models.Model):
 		self.createPaymentAssets()
 		self.sendCashBankOpening()
 		self.createLiabilityRecords()
+		self.createNCRAssets()
+		self.getNCRRecieptValues()
+		self.sendNCRIncome()
+		self.sendNCRPayments()
 		self.sendCapitalGainIncome()
 		self.deductCapitalAmount()
 		self.createCashBankAssets()
@@ -103,10 +107,6 @@ class comparative_wealth(models.Model):
 		self.createOpeningReconcil()
 		self.createReconcilClosing()
 		self.getReconciliationDiff()
-		self.createNCRAssets()
-		self.getNCRRecieptValues()
-		self.sendNCRIncome()
-		self.sendNCRPayments()
 		self.delCapitalGain()
 		# self.createNtrFromReciepts()
 		self.update()
@@ -192,7 +192,7 @@ class comparative_wealth(models.Model):
 	def createPaymentAssets(self):
 		for line in self.cash_payments_ids.search([('receipt_type','=','asset'),('payments_id.id','=',self.id)]):
 			if not self.wealth_assets_ids.search([('payment_id','=',line.id)]):
-				self.wealth_assets_ids.create({
+				record = self.wealth_assets_ids.create({
 					'description' : line.description,
 					'assets_id' : self.id,
 					'payment_id': line.id
@@ -210,7 +210,11 @@ class comparative_wealth(models.Model):
 							amount = self.env.cr.fetchone()[0]
 							if amount != None:
 								emp_list = emp_list + amount
-						self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list)+"  WHERE  payment_id = "+str(line.id)+"")
+						ncr_records = self.env['non.cash.receipts'].search([('assets','=',record.id)])
+						for ncr in ncr_records.non_receipt_ids:
+							if ncr.ncr_year.code == "20"+str(x):
+								if ncr.ncr_addition:
+									self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list+ncr.ncr_addition)+"  WHERE  payment_id = "+str(line.id)+"")
 			elif self.wealth_assets_ids.search([('payment_id','=',line.id)]):
 				self.wealth_assets_ids.search([('payment_id','=',line.id)]).description = line.description
 				record_fields = "y20"
@@ -226,7 +230,12 @@ class comparative_wealth(models.Model):
 							amount = self.env.cr.fetchone()[0]
 							if amount != None:
 								emp_list = emp_list + amount
-						self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list)+"  WHERE  payment_id = "+str(line.id)+"")
+						wealth_assets_record = self.env['wealth.assets'].search([('payment_id','=',line.id)])
+						ncr_records = self.env['non.cash.receipts'].search([('assets','=',wealth_assets_record.id)])
+						for ncr in ncr_records.non_receipt_ids:
+							if ncr.ncr_year.code == "20"+str(x):
+								if ncr.ncr_addition:
+									self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list+ncr.ncr_addition)+"  WHERE  payment_id = "+str(line.id)+"")
 		if self.cash_receipts_ids:
 			self.updateCapitalGainRecords()
 
@@ -357,7 +366,11 @@ class comparative_wealth(models.Model):
 										self.env.cr.execute("update wealth_reconciliation_income set "+str(line.browse(year).id)+" =  "+str(rec.capital_gain)+" WHERE id = "+str(record.id)+"")
 								else:
 									if 'y'+rec.year_sale.code == line.browse(year).id:
-										self.env.cr.execute("update wealth_reconciliation_income set "+str(line.browse(year).id)+" =  "+str(rec.capital_gain)+" WHERE id = "+str(old_wealth_record.id)+"")
+										ncr_records = self.env['non.cash.receipts'].search([('assets','=',line.capital_gain.assets.id)])
+										for ncr in ncr_records.non_receipt_ids:
+											if ncr.ncr_year.code == rec.year_sale.code:
+												if ncr.ncr_addition:
+													self.env.cr.execute("update wealth_reconciliation_income set "+str(line.browse(year).id)+" =  "+str(ncr.ncr_addition + rec.capital_gain)+" WHERE id = "+str(old_wealth_record.id)+"")
 							elif rec.capital_gain < 0:
 								old_wealth_record = self.wealth_reconciliation_expense_ids.search([('description','=',line.capital_gain.assets.description),('wealth_expense_id','=',self.id)])
 								if not old_wealth_record:
@@ -366,10 +379,10 @@ class comparative_wealth(models.Model):
 										'wealth_expense_id':self.id,
 										})
 									if 'y'+rec.year_sale.code == line.browse(year).id:
-										self.env.cr.execute("update wealth_reconciliation_expense set "+str(line.browse(year).id)+" =  "+str(rec.capital_gain)+" WHERE id = "+str(record.id)+"")
+										self.env.cr.execute("update wealth_reconciliation_expense set "+str(line.browse(year).id)+" =  "+str(rec.capital_gain * -1)+" WHERE id = "+str(record.id)+"")
 								else:
 									if 'y'+rec.year_sale.code == line.browse(year).id:
-										self.env.cr.execute("update wealth_reconciliation_expense set "+str(line.browse(year).id)+" =  "+str(rec.capital_gain)+" WHERE id = "+str(old_wealth_record.id)+"")
+										self.env.cr.execute("update wealth_reconciliation_expense set "+str(line.browse(year).id)+" =  "+str(rec.capital_gain * -1)+" WHERE id = "+str(old_wealth_record.id)+"")
 
 ######################################### Sending Capital Gain Yearly amount in same year of wealth_reconciliation_income###############
 
@@ -491,54 +504,64 @@ class comparative_wealth(models.Model):
 						self.env.cr.execute("UPDATE wealth_reconciliation_open b SET    "+update_field+" = a."+record_field+" FROM   closing_2_closing_2 a WHERE  b.cash_closing_2_id = a.id")
 
 
+
+	def addPreNCRColAssets(self, start_value, end_value,  table_name , line_id):
+					previous = 0
+					record_fields = "y"
+					for x in xrange(start_value,end_value):
+						pre_field = record_fields+str(x)
+						self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = '"+table_name+"' AND COLUMN_NAME = '"+pre_field+"'")
+						pre_column = self.env.cr.fetchone()
+						if pre_column != None:
+							self.env.cr.execute("select SUM("+pre_field+")  FROM "+table_name+" WHERE receipts_id = "+str(line_id)+" ")
+							pre_total = self.env.cr.fetchone()[0]
+							if pre_total != None:
+								previous = previous + pre_total
+					return previous
 ################################################## Create Assets of NON CASH RECIEPTS from RECEIPTS#################################################
 	def createNCRAssets(self):
 		for line in self.cash_receipts_ids.search([('receipt_type','=','ncr'),('receipts_id.id','=',self.id)]):
 			if not self.wealth_assets_ids.search([('receipts_id','=',line.id)]):
-				self.wealth_assets_ids.create({
+				record = self.wealth_assets_ids.create({
 					'description' : line.description,
 					'assets_id' : self.id,
 					'receipts_id': line.id
 					})
 				emp_list = 0
-				data = []
+				for ncr in line.non_cash_receipts:
+					ncr.assets = record.id
 				for rec in line.non_cash_receipts.non_receipt_ids:
-					
 					year = int(rec.ncr_year.code)
-					print year
-					year_field = 'y'+rec.ncr_year.code
 					record_fields = "y"
+					emp_list += rec.remaining_value
 					for x in xrange(year,2025):
 						record_field = record_fields + str(x)
 						self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = 'wealth_assets' AND COLUMN_NAME = '"+record_field+"'")
-
 						check_column = self.env.cr.fetchone() ####2016
-						# y2014
 						if check_column != None:
 							for y in xrange(2010,x+1):
 								record_new = 'y' + str(y)
-								self.env.cr.execute("UPDATE wealth_assets SET    "+record_new+" = "+str(rec.remaining_value)+"  WHERE  receipts_id = "+str(line.id)+"")
+								self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(rec.remaining_value)+"  WHERE  receipts_id = "+str(line.id)+"")
 							# if len(line.non_cash_receipts.non_receipt_ids) > 1:
 							# 	break
 
+			result = 0
 			for rec in line.non_cash_receipts.non_receipt_ids:
 				year = int(rec.ncr_year.code)
-
-				year_field = 'y'+str(rec.ncr_year.code)
-
 				record_fields = "y"
+				result += rec.remaining_value 
 				for x in xrange(year,2025):
 					record_field = record_fields + str(x)
 					self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = 'wealth_assets' AND COLUMN_NAME = '"+record_field+"'")
 					check_column = self.env.cr.fetchone() ####2016
 					if check_column != None:
-						self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(rec.remaining_value)+"  WHERE  receipts_id = "+str(line.id)+"")
-						# if len(line.non_cash_receipts.non_receipt_ids) > 1:
-						# 	break
+						self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(result)+"  WHERE  receipts_id = "+str(line.id)+"")
+
+
 
 
 ################################################### Get value of Non Cash Receipt In Receipt Year ######################################
-	
+
 	def getNCRRecieptValues(self):
 		if self.cash_receipts_ids:
 			for line in self.cash_receipts_ids:
@@ -576,21 +599,22 @@ class comparative_wealth(models.Model):
 			for line in self.cash_receipts_ids:
 				if line.non_cash_receipts:
 					old_wealth_record = self.cash_payments_ids.search([('receipts_id','=',line.id)])
-					if not old_wealth_record:
+					if not old_wealth_record and sum(item.ncr_cash for item in line.non_cash_receipts.non_receipt_ids ) != 0:
 						record = self.cash_payments_ids.create({
 							'description' : line.description,
 							'payments_id':self.id,
 							'receipts_id':line.id
 							})
 					for rec in line.non_cash_receipts.non_receipt_ids:
-						year = 'y'+str(rec.ncr_year.code)
-						if rec.ncr_year.code:
-							if not old_wealth_record:
-								if 'y'+rec.ncr_year.code == line.browse(year).id:
-									self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(record.id)+"")
-							else:
-								if 'y'+rec.ncr_year.code == line.browse(year).id:
-									self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(old_wealth_record.id)+"")
+						if rec.ncr_cash != 0:
+							year = 'y'+str(rec.ncr_year.code)
+							if rec.ncr_year.code:
+								if not old_wealth_record:
+									if 'y'+rec.ncr_year.code == line.browse(year).id:
+										self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(record.id)+"")
+								else:
+									if 'y'+rec.ncr_year.code == line.browse(year).id:
+										self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(old_wealth_record.id)+"")
 
 ######################################### Delete Capital Gain Whose Assest Is False #############################
 	def delCapitalGain(self):
@@ -634,14 +658,14 @@ class comparative_wealth(models.Model):
 			self.createPaymentAssets()
 			self.sendCashBankOpening()
 			self.createLiabilityRecords()
-			self.sendCapitalGainIncome()
-			self.deductCapitalAmount()
-			self.createCashBankAssets()
-			self.createPaymentOnCreateAssets()
 			self.createNCRAssets()
 			self.getNCRRecieptValues()
 			self.sendNCRIncome()
 			self.sendNCRPayments()
+			self.sendCapitalGainIncome()
+			self.deductCapitalAmount()
+			self.createCashBankAssets()
+			self.createPaymentOnCreateAssets()
 			self.delCapitalGain()
 			# self.createNtrFromReciepts()
 
