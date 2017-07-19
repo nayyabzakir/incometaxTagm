@@ -203,7 +203,7 @@ class tax_computation(models.Model):
 		# self.calculateTaxSBI()
 		# self.getBusinessProfit()
 		# self.computeTaxCredit()
-		# self.getTaxCompDetails()
+		self.getTaxCompDetails()
 		self.get_tax_rate()
 
 
