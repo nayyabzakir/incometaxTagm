@@ -12,7 +12,7 @@
 
 
     # any module necessary for this one to work correctly
-    'depends': ['base','sale','hr','mail'],
+    'depends': ['base','sale','hr','mail','fbr_details'],
 
     # always loaded
     'data': [

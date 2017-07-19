@@ -9,7 +9,7 @@
                     <field name="arch" type="xml">
                         <form string="Correspondence">
                             <header>
-                                <field name="stages" widget="statusbar"/>
+                                <field name="stages" widget="statusbar" clickable="True"/>
                             </header>
                             <sheet>
                                 <group name="group_top">
@@ -18,14 +18,24 @@
                                         <field name="section_no"/>
                                         <field name="section_des"/>
                                         <field name="acc_officer"/>
+                                        <field name="ao_zone"/>
+                                        <field name="ao_unit"/>
+                                        <field name="ao_designation"/>
+                                        <field name="ito_name"/>
+                                        <field name="ito_contact_no"/>
                                         <field name="date_of_notice"/>
                                         <field name="notice_no"/>
-                                        <field name="vv" invisible ='True'/>
+                                        <field name="vv" invisible='True'/>
                                     </group>
                                     <group name="group_right">
                                         <field name="assessing_authority"/>
                                         <field name="rto"/>
                                         <field name="demand_amount"/>
+                                        <field name="type_of"/>
+                                        <field name="stage_name"/>
+                                        <field name="internal_file_no"/>
+                                        <field name="ntn_no"/>
+                                        <field name="strn_no"/>
                                         <field name="assigned_to"/>
                                         <field name="tax_year"/>
                                     </group>
@@ -39,11 +49,20 @@
                                                 <field name="x_type"/>
                                                 <field name="nex_hear_dat"/>
                                                 <field name="remarks"/>
+                                                <field name="attachment"/>
+                                                <field name="acc_officer"/>
+                                                <field name="cor_file_type"/>
                                             </tree>
                                         </field>
                                     </page>
                                 </notebook>
                             </sheet>
+                        <!-- Mail foram-START -->
+                            <div class="oe_chatter">
+                                <field name="message_follower_ids" widget="mail_followers"/>
+                                <field name="message_ids" widget="mail_thread"/>
+                            </div>
+                        <!-- Mail foram-ENDS -->
                         </form>
                     </field>
                 </record>
@@ -482,7 +501,6 @@
                         <form string="Correspondence File Type">
                             <header>
                                 <button name="validate" type="object" string="Validate" class="oe_highlight"/>
-                                <button name="createInvoice" type="object" string="Create Invoice" class="oe_highlight"/>
                                 <field name="state" widget="statusbar"/>
                             </header>
                             <sheet>
@@ -490,13 +508,15 @@
                                     <group name="group_left">                               
                                         <field name="assessing_officer"  attrs="{'readonly': [('state','=',('validate'))]}"/>
                                         <field name="notice_no" attrs="{'readonly': [('state','=',('validate'))]}"/>
+                                        <field name="subject" attrs="{'readonly': [('state','=',('validate'))]}"/>
+                                        <field name="detail" attrs="{'readonly': [('state','=',('validate'))]}"/>
                                     </group>
                                     <group name="group_right">
                                         <field name="customer_name" attrs="{'readonly': [('state','=',('validate'))]}"/>
                                         <field name="date" attrs="{'readonly': [('state','=',('validate'))]}"/>
                                     </group>
                                 </group>
-                                <field name="description" widget="text_ckeditor4"/>
+                                <field name="description" attrs="{'readonly': [('state','=',('validate'))]}" widget="text_ckeditor4"/>
                             </sheet>
                         </form>
                     </field>
@@ -530,9 +550,145 @@
             <!--************************[Action-ENDS]*************************-->
 
             <!--========================[Menu-START]==========================-->
-                <menuitem name="File Type" id="correspondencefiletype_child_child_2" parent="correspondence_child" action="action_correspondencefiletype" sequence="6"/>
+                <menuitem name="Letter" id="correspondencefiletype_child_child_2" parent="correspondence_child" action="action_correspondencefiletype" sequence="6"/>
             <!--************************[Menu-ENDS]***************************-->
         <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%Correspondence Attachment%%%%%%%%%%%%%%%%%%%% -->
+            <!--========================[Form View-START]=====================-->
+                <record id="correspondenceattachment_form_view" model="ir.ui.view">
+                    <field name="name">correspondenceattachment_form_view</field>
+                    <field name="model">correspondence.attachment</field>
+                    <field name="type">form</field>
+                    <field name="arch" type="xml">
+                        <form string="Correspondence Attachment">
+                            <header>
+                            </header>
+                            <sheet>
+                                <group name="group_top">
+                                    <group name="group_left">                               
+                                    </group>
+                                    <group name="group_right">
+                                    </group>
+                                </group>
+                                <field name="attachment_tree_ids">
+                                    <tree editable="bottom">
+                                        <field name="name"/>
+                                        <field name="attachment"/>
+                                    </tree>
+                                </field>
+                            </sheet>
+                        </form>
+                    </field>
+                </record>
+            <!--************************[Form View-ENDS]**********************-->
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%Correspondence Attachment ENDS%%%%%%%%%%%%%%%%%%%% -->
+
+
+
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%Correspondence Stages%%%%%%%%%%%%%%%%%%%% -->
+            <!--========================[Form View-START]=====================-->
+                <record id="correspondencestages_form_view" model="ir.ui.view">
+                    <field name="name">correspondencestages_form_view</field>
+                    <field name="model">correspondence.stage</field>
+                    <field name="type">form</field>
+                    <field name="arch" type="xml">
+                        <form string="Correspondence Stages">
+                            <sheet>
+                                <group name="group_top">
+                                    <group name="group_left">
+                                        <field name="name"/>
+                                    </group>
+                                    <group name="group_right">
+                                        <field name="sequence" widget="handle" />
+                                    </group>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </record>
+            <!--************************[Form View-ENDS]**********************-->
+
+            <!--========================[Tree View-START]=====================-->
+
+                <record id="correspondencestages_tree_view" model="ir.ui.view">
+                    <field name="name">correspondencestages_tree_view</field>
+                    <field name="model">correspondence.stage</field>
+                    <field name="type">tree</field>
+                    <field name="arch" type="xml">
+                        <tree string="Correspondence Stages">
+                            <field name="sequence" widget="handle" />
+                            <field name="name"/>
+                        </tree>
+                    </field>
+                </record>
+            <!--************************[Tree View-ENDS]**********************-->
+
+            <!--========================[Action-START]========================-->
+                <record model="ir.actions.act_window" id="action_correspondencestages">
+                    <field name="name">Correspondence Stages</field>
+                    <field name="res_model">correspondence.stage</field>
+                    <field name="view_type">form</field>
+                    <field name="view_mode">tree,form</field>
+                </record>
+            <!--************************[Action-ENDS]*************************-->
+
+            <!--========================[Menu-START]==========================-->
+                <menuitem name="Stages" id="correspondencestages_child_child_2" parent="correspondence_child" action="action_correspondencestages" sequence="6"/>
+            <!--************************[Menu-ENDS]***************************-->
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+
+
+
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%Correspondence Accessing Officer%%%%%%%%%%%%%%%%%%%% -->
+            <!--========================[Form View-START]=====================-->
+                <record id="correspondenceacc_officer_form_view" model="ir.ui.view">
+                    <field name="name">correspondenceacc_officer_form_view</field>
+                    <field name="model">corres.acc.officer</field>
+                    <field name="type">form</field>
+                    <field name="arch" type="xml">
+                        <form string="Accessing Officer">
+                            <sheet>
+                                <group name="group_top">
+                                    <group name="group_left">
+                                        <field name="name"/>
+                                        <field name="ao_zone"/>
+                                        <field name="ao_unit"/>
+                                    </group>
+                                    <group name="group_right">
+                                        <field name="ao_designation" />
+                                        <field name="rto"  />
+                                    </group>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </record>
+            <!--************************[Form View-ENDS]**********************-->
+
+            <!--========================[Tree View-START]=====================-->
+
+                <record id="correspondenceacc_officer_tree_view" model="ir.ui.view">
+                    <field name="name">correspondenceacc_officer_tree_view</field>
+                    <field name="model">corres.acc.officer</field>
+                    <field name="type">tree</field>
+                    <field name="arch" type="xml">
+                        <tree string="Accessing Officer">
+                            <field name="name"/>
+                            <field name="ao_zone"/>
+                            <field name="ao_unit"/>
+                            <field name="ao_designation" />
+                            <field name="rto"  />
+                        </tree>
+                    </field>
+                </record>
+            <!--************************[Tree View-ENDS]**********************-->
+
+        <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
 
 
     </data>

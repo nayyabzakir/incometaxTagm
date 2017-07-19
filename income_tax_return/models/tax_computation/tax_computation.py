@@ -180,29 +180,28 @@ class tax_computation(models.Model):
 
 	@api.multi
 	def update_computation(self):
-		# self.tax_computation_ntr_id.unlink()
-		# self.tax_computation_ftr_id.unlink()
-		# self.tax_deduct_link_id.unlink()
-		# required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+		self.tax_computation_ntr_id.unlink()
+		self.tax_deduct_link_id.unlink()
+		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
-		# self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
-		# self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
-		# self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
-		# self.income_under_ftr = sum(line.amount for line in self.tax_computation_ftr_id)
-		# self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'adjustable')
-		# self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
-		# self.taxable_income = self.income_under_ntr - self.deductible_allowance
-		# self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
-		# self.createIncomeUNTR()
-		# self.createIncomeUFTR()
-		# self.createTaxDeducted()
-		# self.createIncomeUExempt()
-		# self.createDedAllowance()
-		# self.createSBI()
-		# self.updateCGTAmount()
-		# self.calculateTaxSBI()
-		# self.getBusinessProfit()
-		# self.computeTaxCredit()
+		self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
+		self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
+		self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
+		self.income_under_ftr = sum(line.amount for line in self.tax_computation_ftr_id)
+		self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'adjustable')
+		self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
+		self.taxable_income = self.income_under_ntr - self.deductible_allowance
+		self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
+		self.createIncomeUNTR()
+		self.createIncomeUFTR()
+		self.createTaxDeducted()
+		self.createIncomeUExempt()
+		self.createDedAllowance()
+		self.createSBI()
+		self.updateCGTAmount()
+		self.calculateTaxSBI()
+		self.getBusinessProfit()
+		self.computeTaxCredit()
 		self.getTaxCompDetails()
 		self.get_tax_rate()
 
@@ -358,17 +357,19 @@ class tax_computation(models.Model):
 	def createIncomeUFTR(self):
 		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
-		self.tax_computation_ftr_id.unlink()
+		# self.tax_computation_ftr_id.unlink()
 		year = 'y'+str(self.tax_year.code)
 		for line in required_class.cash_receipts_ids:
-			if line.tax_type == 'ftr':
-				new_ftr_id = self.tax_computation_ftr_id.create({
-					'description' : line.description,
-					'receipts_id': line.id,
-					'receipt_type' : line.sub_type,
-					'income_under_ftr_id': self.id,
-					})
-				self.env.cr.execute("UPDATE income_under_ftr b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_ftr_id.id)+"")
+			old_rec =  self.tax_computation_ftr_id.search([('receipts_id','=',line.id),('income_under_ftr_id','=',self.id)])
+			if not old_rec:
+				if line.tax_type == 'ftr':
+					new_ftr_id = self.tax_computation_ftr_id.create({
+						'description' : line.description,
+						'receipts_id': line.id,
+						'receipt_type' : line.sub_type,
+						'income_under_ftr_id': self.id,
+						})
+					self.env.cr.execute("UPDATE income_under_ftr b SET    amount = a."+year+" FROM   receipts a WHERE  b.receipts_id = a.id and b.id = "+str(new_ftr_id.id)+"")
 
 
 
@@ -511,54 +512,56 @@ class tax_computation(models.Model):
 			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
 			tax_rate_book = required_class.business_rates_table_ids
 			for x in tax_rate_book:
-				if x.amount_from <= self.tc_ntr <= x.amount_to:    # 850000
-					fixed_tax = x.fixed_tax_amount                        #32000
-					taxable_amount = self.tc_ntr - x.amount_from   #100000
-					tax_amount = taxable_amount * x.rate_of_tax				   #15000
-					tax_rate = (tax_amount / self.tc_ntr) / 100
-					actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
-					avg_rate = actual_liabilty/ self.tc_ntr
-					self.createTCShareAop(avg_rate)
-					for line in self.tax_computation_ntr_id:
-						if line.tax_type == 'minimum':
-							att_min_tax = line.amount * avg_rate
-							diff_lib =  line.min_wh - att_min_tax
-							if diff_lib > 0:
-								lib_amount += diff_lib
-						if line.tax_type == 'bahbood':
-							bahbood_tax = line.amount * avg_rate
-							bahbood_10 = line.amount * 0.1
-							bahbood_diff = bahbood_tax - bahbood_10
-							if bahbood_diff > 0:
-								lib_bahbood += bahbood_diff
-					self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood 
-								
+				if self.tc_ntr:
+					if x.amount_from <= self.tc_ntr <= x.amount_to:    # 850000
+						fixed_tax = x.fixed_tax_amount                        #32000
+						taxable_amount = self.tc_ntr - x.amount_from   #100000
+						tax_amount = taxable_amount * x.rate_of_tax				   #15000
+						tax_rate = (tax_amount / self.tc_ntr) / 100
+						actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
+						avg_rate = actual_liabilty/ self.tc_ntr
+						self.createTCShareAop(avg_rate)
+						for line in self.tax_computation_ntr_id:
+							if line.tax_type == 'minimum':
+								att_min_tax = line.amount * avg_rate
+								diff_lib =  line.min_wh - att_min_tax
+								if diff_lib > 0:
+									lib_amount += diff_lib
+							if line.tax_type == 'bahbood':
+								bahbood_tax = line.amount * avg_rate
+								bahbood_10 = line.amount * 0.1
+								bahbood_diff = bahbood_tax - bahbood_10
+								if bahbood_diff > 0:
+									lib_bahbood += bahbood_diff
+						self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood 
+									
 
 		else:
 			required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
 			tax_rate_book = required_class.salaried_rates_table_ids
 			for x in tax_rate_book:
-				if x.amount_from <= self.tc_ntr <= x.amount_to:  #85000
-					fixed_tax = x.fixed_tax_amount                       #14500
-					taxable_amount = self.tc_ntr - x.amount_from # 100000
-					tax_amount = taxable_amount * x.rate_of_tax               #10000
-					tax_rate = (tax_amount / self.tc_ntr) / 100
-					actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
-					avg_rate = actual_liabilty/ self.tc_ntr
-					self.createTCShareAop(avg_rate)
-					for line in self.tax_computation_ntr_id:
-						if line.tax_type == 'minimum':
-							att_min_tax = line.amount * avg_rate
-							diff_lib =  line.min_wh - att_min_tax
-							if diff_lib > 0:
-								lib_amount += diff_lib
-						if line.tax_type == 'bahbood':
-							bahbood_tax = line.amount * avg_rate
-							bahbood_10 = line.amount * 0.1
-							bahbood_diff = bahbood_tax - bahbood_10
-							if bahbood_diff > 0:
-								lib_bahbood += bahbood_diff
-					self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood
+				if self.tc_ntr:
+					if x.amount_from <= self.tc_ntr <= x.amount_to:  #85000
+						fixed_tax = x.fixed_tax_amount                       #14500
+						taxable_amount = self.tc_ntr - x.amount_from # 100000
+						tax_amount = taxable_amount * x.rate_of_tax               #10000
+						tax_rate = (tax_amount / self.tc_ntr) / 100
+						actual_liabilty = self.tc_ntr * tax_rate + fixed_tax
+						avg_rate = actual_liabilty/ self.tc_ntr
+						self.createTCShareAop(avg_rate)
+						for line in self.tax_computation_ntr_id:
+							if line.tax_type == 'minimum':
+								att_min_tax = line.amount * avg_rate
+								diff_lib =  line.min_wh - att_min_tax
+								if diff_lib > 0:
+									lib_amount += diff_lib
+							if line.tax_type == 'bahbood':
+								bahbood_tax = line.amount * avg_rate
+								bahbood_10 = line.amount * 0.1
+								bahbood_diff = bahbood_tax - bahbood_10
+								if bahbood_diff > 0:
+									lib_bahbood += bahbood_diff
+						self.tc_tax_liabilty = lib_amount + actual_liabilty - lib_bahbood
 
 	def createTCShareAop(self, avg_rate):
 		if self.tc_share_aop:

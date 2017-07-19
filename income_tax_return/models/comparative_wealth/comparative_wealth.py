@@ -211,10 +211,13 @@ class comparative_wealth(models.Model):
 							if amount != None:
 								emp_list = emp_list + amount
 						ncr_records = self.env['non.cash.receipts'].search([('assets','=',record.id)])
-						for ncr in ncr_records.non_receipt_ids:
-							if ncr.ncr_year.code == "20"+str(x):
-								if ncr.ncr_addition:
-									self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list+ncr.ncr_addition)+"  WHERE  payment_id = "+str(line.id)+"")
+						if ncr_records:
+							for ncr in ncr_records.non_receipt_ids:
+								if ncr.ncr_year.code == "20"+str(x):
+									if ncr.ncr_addition:
+										self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list+ncr.ncr_addition)+"  WHERE  payment_id = "+str(line.id)+"")
+						else:
+							self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list)+"  WHERE  payment_id = "+str(line.id)+"")
 			elif self.wealth_assets_ids.search([('payment_id','=',line.id)]):
 				self.wealth_assets_ids.search([('payment_id','=',line.id)]).description = line.description
 				record_fields = "y20"
@@ -232,10 +235,13 @@ class comparative_wealth(models.Model):
 								emp_list = emp_list + amount
 						wealth_assets_record = self.env['wealth.assets'].search([('payment_id','=',line.id)])
 						ncr_records = self.env['non.cash.receipts'].search([('assets','=',wealth_assets_record.id)])
-						for ncr in ncr_records.non_receipt_ids:
-							if ncr.ncr_year.code == "20"+str(x):
-								if ncr.ncr_addition:
-									self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list+ncr.ncr_addition)+"  WHERE  payment_id = "+str(line.id)+"")
+						if ncr_records:
+							for ncr in ncr_records.non_receipt_ids:
+								if ncr.ncr_year.code == "20"+str(x):
+									if ncr.ncr_addition:
+										self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list+ncr.ncr_addition)+"  WHERE  payment_id = "+str(line.id)+"")
+						else:
+							self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(emp_list)+"  WHERE  payment_id = "+str(line.id)+"")
 		if self.cash_receipts_ids:
 			self.updateCapitalGainRecords()
 

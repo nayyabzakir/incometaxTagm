@@ -19,7 +19,7 @@ class capital_gain(models.Model):
 	description    = fields.Char()
 	year_purchase  = fields.Many2one('account.fiscalyear')
 	year_sale      = fields.Many2one('account.fiscalyear')
-	assets         = fields.Many2one('wealth.assets',domain="[('assets_id.name.id','=',name)]", required=True)
+	assets         = fields.Many2one('wealth.assets',domain="[('assets_id.name.id','=',name)]")
 	sale_value     = fields.Float()
 	purchase_value = fields.Float()
 	capital_gain   = fields.Float()

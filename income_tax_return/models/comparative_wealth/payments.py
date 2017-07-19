@@ -53,7 +53,7 @@ class payments(models.Model):
             ])
 
 	payments_id = fields.Many2one('comparative.wealth',
-        ondelete='cascade', string="Wealth Reconciliation", required=True)
+        ondelete='cascade', string="Wealth Reconciliation")
 
 	receipts_id = fields.Many2one('receipts',
         ondelete='cascade', string="Receipts")

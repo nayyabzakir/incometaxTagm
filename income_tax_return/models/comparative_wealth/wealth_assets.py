@@ -34,7 +34,7 @@ class wealth_assets(models.Model):
 	own_id   = fields.Integer()   
 
 	assets_id = fields.Many2one('comparative.wealth',
-        ondelete='cascade', string="Wealth Statement", required=True)
+        ondelete='cascade', string="Wealth Statement")
 	payment_id = fields.Many2one('payments',
         ondelete='cascade', string="Payments")
 	cash_bank_id = fields.Many2one('reconciliation.balance',
