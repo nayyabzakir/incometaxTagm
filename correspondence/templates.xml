@@ -12,6 +12,7 @@
                                 <field name="stages" widget="statusbar" clickable="True"/>
                             </header>
                             <sheet>
+                                <field name="vv" invisible="True"/>
                                 <group name="group_top">
                                     <group name="group_left">                               
                                         <field name="client_name"/>
@@ -33,7 +34,6 @@
                                         <field name="demand_amount"/>
                                         <field name="type_of"/>
                                         <field name="stage_name"/>
-                                        <field name="internal_file_no"/>
                                         <field name="ntn_no"/>
                                         <field name="strn_no"/>
                                         <field name="assigned_to"/>
@@ -42,7 +42,7 @@
                                 </group>
                                  <notebook>
                                     <page string="Correspondence History">
-                                        <field name="corres_his">
+                                        <field name="corres_his" >
                                             <tree editable="bottom">
                                                 <field name="hearing_date"/>
                                                 <field name="atendee_name"/>
@@ -52,6 +52,18 @@
                                                 <field name="attachment"/>
                                                 <field name="acc_officer"/>
                                                 <field name="cor_file_type"/>
+                                                <field name="client_name" invisible="True"/>
+                                                <field name="section_no" invisible="True"/>
+                                                <field name="notice_no" invisible="True"/>
+                                                <field name="assigned_to" invisible="True"/>
+                                                <field name="tax_year" invisible="True"/>
+                                                <field name="type_of" invisible="True"/>
+                                                <field name="hearing_date_str" invisible="True"/>
+                                                <field name="internal_file_no"/>
+                                                <field name="attachment_file"/>
+                                                <field name="status"/>
+                                                <button name="changeStatus" string="Done" type="object"  class="oe_highlight" attrs="{'invisible': [('status','=','Done')]}"/>
+                                                <field name="done_date" invisible="True"/>
                                             </tree>
                                         </field>
                                     </page>
@@ -88,6 +100,7 @@
                         </field>
                     </record>
             <!--************************[Tree View-ENDS]**********************-->
+
 
             <!--========================[Action-START]========================-->
                 <record model="ir.actions.act_window" id="action_correspondence">
@@ -444,11 +457,25 @@
                                         <field name="hearing_date"/>
                                         <field name="atendee_name"/>
                                         <field name="x_type"/>
+                                        <field name="section_no"/>
+                                        <field name="notice_no"/>
+                                        <field name="assigned_to"/>
+                                        <field name="attachment"/>
+                                        <field name="acc_officer"/>
+                                        <field name="status"/>
+                                        <field name="hearing_date_now"/>
                                     </group>
                                     <group name="group_right">
                                         <field name="nex_hear_dat"/>
                                         <field name="remarks"/>
                                         <field name="correspondence_his" readonly='1'/>
+                                        <field name="tax_year"/>
+                                        <field name="type_of"/>
+                                        <field name="internal_file_no"/>
+                                        <field name="attachment_file"/>
+                                        <field name="cor_file_type"/>
+                                        <field name="done_date"/>
+                                        <field name="today_date_curr"/>
                                     </group>
                                 </group>
                             </sheet>
@@ -466,15 +493,59 @@
                     <field name="arch" type="xml">
                         <tree string="Correspondence">
                             <field name="correspondence_his"/>
-                            <field name="hearing_date"/>
+                            <field name="hearing_date_str"/>
                             <field name="atendee_name"/>
                             <field name="x_type"/>
                             <field name="nex_hear_dat"/>
                             <field name="remarks"/>
+                            <field name="section_no"/>
+                            <field name="notice_no"/>
+                            <field name="assigned_to"/>
+                            <field name="tax_year"/>
+                            <field name="type_of"/>
+                            <field name="attachment"/>
+                            <field name="acc_officer"/>
+                            <field name="cor_file_type"/>
+                            <field name="status"/>
+                            <field name="done_date"/>
+                            <field name="hearing_date_now"/>
+                            <field name="today_date_curr"/>
                         </tree>
                     </field>
                 </record>
             <!--************************[Tree View-ENDS]**********************-->
+            <!--========================[Search View-START]=====================-->
+
+                <record id="correspondence_history_search_view" model="ir.ui.view">
+                    <field name="name">correspondence_history_search_view</field>
+                    <field name="model">correspondence.history</field>
+                    <field name="arch" type="xml">
+                        <search string="Search History">
+                           <filter string="Accessing Officer" name="acc_officer" domain="[('acc_officer','=',1)]"/>
+                           <filter string="Attendee Name" name="atendee_name" domain="[('atendee_name','=',1)]"/>
+                           <filter string="Assigned To" name="assigned_to" domain="[('assigned_to','=',1)]"/>
+                           <filter string="Today" name="today" domain="[('hearing_date','=',current_date)]" />
+
+                           <filter string="Tomorrow" name="tomorrow" domain="[('hearing_date','=',(context_today()+relativedelta(days=1)).strftime('%%Y-%m-%d'))]" />
+                           <filter string="Next Week" name="next_week" domain="[('hearing_date','&gt;=',(context_today()+relativedelta(days=7)).strftime('%%Y-%m-%d')),('hearing_date','&lt;=',(context_today()+relativedelta(days=-7)).strftime('%%Y-%m-%d'))]"/>
+                           <filter string="This Week" name="this_week" domain="[('hearing_date','&lt;=',(context_today()+relativedelta(days=7)).strftime('%%Y-%m-%d')),('hearing_date','&gt;=',(context_today()+relativedelta(days=-7)).strftime('%%Y-%m-%d'))]" />
+                           <separator/>
+                           <field name="atendee_name" string="Attendee Name"/>
+                           <field name="assigned_to" string="Assigned To"/>
+                           <field name="section_no" string="Section No"/>
+                           <field name="notice_no" string="Notice No"/>
+                           <group expand="0" string="Group By">
+                               <filter string="Tax Year" icon="terp-personal" domain="[]" context="{'group_by' : 'tax_year'}"/>
+                               <filter string="Section No" context="{'group_by': 'section_no'}"/>
+                               <filter string="Notice No" context="{'group_by': 'notice_no'}"/>
+                               <filter string="Status" context="{'group_by': 'status'}"/>
+                               <filter string="Hearing Date" context="{'group_by': 'hearing_date_str'}"/>
+                               <filter string="Accessing Officer" context="{'group_by': 'acc_officer'}"/>
+                           </group>
+                        </search>
+                    </field>
+                </record>
+            <!--************************[Search View-ENDS]**********************-->
 
             <!--========================[Action-START]========================-->
                 <record model="ir.actions.act_window" id="action_correspondence_history">

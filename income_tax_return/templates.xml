@@ -679,7 +679,7 @@
                                         <field name="comparative_id"/>
                                         <field name="tax_computation" domain="[('client_name','=',client_name)]"/>
                                         <field name="group"/>
-                                        <field name="custom_seq" invisible = "1"/>
+                                        <field name="custom_seq" invisible="1"/>
                                 </group>
                                 <notebook col="4">
                                         <page string="Tax Computation" colspan="4">

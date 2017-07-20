@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from openerp import models, fields, api
+from datetime import datetime, date
+import calendar
+
 
 class CorresPrototype(models.Model):
     _name = "corres.corres.prototype"
@@ -41,7 +44,6 @@ class correspondence(models.Model):
                                 ], default="order")
 
     type_of                 = fields.Many2one('correspondence.type','Type')
-    internal_file_no        = fields.Char("Internal File No")
     ntn_no                  = fields.Char("NTN")
     strn_no                 = fields.Char("STRN")
     ao_zone                 = fields.Char('Zone')
@@ -49,12 +51,15 @@ class correspondence(models.Model):
     ao_designation          = fields.Char('Designation')
     ito_name                = fields.Char("ITO Name")
     ito_contact_no          = fields.Char("ITO Contact No")
-    vv                      = fields.Char(compute="_compute_rec")
-    @api.multi
-    def _compute_rec(self):
-        self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
-    _rec_name = 'vv'
 
+
+
+    vv                      = fields.Char()
+    @api.onchange('notice_no','section_no','tax_year')
+    def _onchange_get_vv(self):
+        if self.client_name or self.notice_no or self.section_no or self.tax_year:
+            self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
+    _rec_name = 'vv'
 
     @api.onchange('client_name')
     def onchangeClientName(self):
@@ -168,23 +173,78 @@ class RTO(models.Model):
 class correspondencehistory(models.Model):
     _name = 'correspondence.history'
 
-    hearing_date = fields.Date('Hearing Date',required=True)
-    atendee_name = fields.Many2one('hr.employee','Attendee Name')
+    hearing_date            = fields.Date('Hearing Date',required=True)
+    atendee_name            = fields.Many2one('hr.employee','Attendee Name')
 
-    x_type = fields.Many2one('correspondence.history.type',string="Type")
+    x_type                  = fields.Many2one('correspondence.history.type',string="Type")
 
-    nex_hear_dat = fields.Date('Next Hearing Date')          
-    remarks      = fields.Text()
-    attachment   = fields.Many2one('correspondence.attachment','Attachment')
-    acc_officer    = fields.Many2one('corres.acc.officer','Assessing Officer', required=True)
-    cor_file_type= fields.Many2one('correspondence.file.type','Reply')
-    
-    correspondence_his = fields.Many2one('correspondence.correspondence',
+    nex_hear_dat            = fields.Date('Next Hearing Date')          
+    remarks                 = fields.Text()
+    attachment              = fields.Many2one('correspondence.attachment','Attachment')
+    acc_officer             = fields.Many2one('corres.acc.officer','Assessing Officer', required=True)
+    cor_file_type           = fields.Many2one('correspondence.file.type','Reply')
+    internal_file_no        = fields.Char("Internal File No")
+    client_name             = fields.Many2one('res.partner','Client Name')
+    section_no              = fields.Char('Section No ')
+    notice_no               = fields.Char('Notice No ')
+    assigned_to             = fields.Many2one('hr.employee','Assigned To')
+    tax_year                = fields.Char('Tax Year')
+    type_of                 = fields.Many2one('correspondence.type','Correspondence Type')
+    status                  = fields.Char('Status')
+    done_date               = fields.Datetime('Done Date')
+    hearing_date_str        = fields.Char('Hearing Date')
+    hearing_date_now        = fields.Integer(string="Hearing Weeknumber")
+    today_date_curr         = fields.Integer(string="Current Weeknumber")
+
+    correspondence_his      = fields.Many2one('correspondence.correspondence',
     ondelete='cascade', string="Name", required=True)
-    
-    _rec_name = 'correspondence_his'
 
+    attachment_file =  fields.Binary(string="Multi Attachment")
+    @api.multi
+    def import_attachment(self):
+        fileobj = TemporaryFile('w+')
+        fileobj.write(base64.decodestring(attachment_file))
+        return
 
+    @api.multi
+    def changeStatus(self):
+        self.status = "Done"
+        self.done_date = datetime.now()
+
+    @api.onchange('remarks')
+    def onchange_remarks(self):
+        self.client_name = self.correspondence_his.client_name.id
+        self.section_no = self.correspondence_his.section_no
+        self.notice_no = self.correspondence_his.notice_no
+        self.assigned_to = self.correspondence_his.assigned_to.id
+        self.tax_year = self.correspondence_his.tax_year
+        self.type_of = self.correspondence_his.type_of.id
+
+    @api.onchange('hearing_date')
+    def onchange_hearing_date(self):
+        if self.hearing_date:
+            hearing_date = datetime.strptime(self.hearing_date,"%Y-%m-%d")
+            weeknumber = hearing_date.isocalendar()[1]
+            # weekdayeng = calendar.day_name[hearing_date.weekday()]
+            # weekdaynum = hearing_date.weekday()
+            now_date = datetime.now()
+            now_weeknumber = now_date.isocalendar()[1]
+
+            result = hearing_date.strftime("%d %b, %Y") 
+            self.today_date_curr = int(now_weeknumber)
+            self.hearing_date_now = int(weeknumber)
+            self.hearing_date_str = result
+
+    # def _getWeekHearing(self):
+    #     if self.hearing_date:
+    #         hearing_date = datetime.strptime(self.hearing_date,"%Y-%m-%d")
+    #         weeknumber = hearing_date.isocalendar()[1]
+
+    def _getCurrentWeek(self):
+        if self.hearing_date:
+            now_date = datetime.now()
+            weeknumber = now_date.isocalendar()[1]
+            self.today_date_curr = weeknumber
 
 
 #Correspondence History Type Class
