@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from openerp import models, fields, api
-from datetime import datetime, date
+# 1 : imports of python lib
 import calendar
-
+from datetime import datetime, date
+# 2 :  imports of odoo
+from openerp import  api, fields,  models
+# 3 :  imports from odoo modules
 
 class CorresPrototype(models.Model):
+    #private attributes
     _name = "corres.corres.prototype"
+    # Default methods
+    # Fields declaration
     client_name    = fields.Many2one('res.partner','Client Name', required=True)
     section_no     = fields.Char('Section No ',required=True)
     section_des    = fields.Char('Section Description')
@@ -27,13 +32,21 @@ class CorresPrototype(models.Model):
     rto    = fields.Many2one('rto.rto','RTO', required=True)
     corres_his = fields.One2many('correspondence.history','correspondence_his')
     tax_year = fields.Char('Tax Year')
+    # compute and search fields, in the same order of fields declaration
+    # Constraints and onchanges
+    # CRUD methods (and name_get, name_search, ...) overrides
+    # Action methods
+    # Business methods
+
 
 # Correspondence Class 
-class correspondence(models.Model):
+class Correspondence(models.Model):
+    #private attributes
     _name                   = 'correspondence.correspondence'
-
+    _description            = 'Correspondence'
     _inherit                = ['mail.thread', 'ir.needaction_mixin','corres.corres.prototype']
-
+    # Default methods
+    # Fields declaration
     stages                  = fields.Many2one('correspondence.stage','Stage Name',track_visibility='always')
     stage_name                  = fields.Selection([
                                 ('order', 'Order'),
@@ -42,7 +55,6 @@ class correspondence(models.Model):
                                 ('sec_appeal', 'Second Appeal'),
                                 ('ref_to_hc', 'Reference to High Court'),
                                 ], default="order")
-
     type_of                 = fields.Many2one('correspondence.type','Type')
     ntn_no                  = fields.Char("NTN")
     strn_no                 = fields.Char("STRN")
@@ -51,76 +63,72 @@ class correspondence(models.Model):
     ao_designation          = fields.Char('Designation')
     ito_name                = fields.Char("ITO Name")
     ito_contact_no          = fields.Char("ITO Contact No")
-
-
-
     vv                      = fields.Char()
+    # Constraints and onchanges
     @api.onchange('notice_no','section_no','tax_year')
-    def _onchange_get_vv(self):
+    def _onchange_vv(self):
         if self.client_name or self.notice_no or self.section_no or self.tax_year:
             self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
     _rec_name = 'vv'
 
     @api.onchange('client_name')
-    def onchangeClientName(self):
+    def _onchange_client_name(self):
         if self.client_name:
             self.ntn_no  = self.client_name.regis_no
             self.strn_no = self.client_name.strn
 
     @api.onchange('acc_officer')
-    def onchangeAccessOfficer(self):
+    def _onchange_acc_officer(self):
         if self.acc_officer:
             self.ao_zone  = self.acc_officer.ao_zone
             self.ao_unit = self.acc_officer.ao_unit
             self.ao_designation = self.acc_officer.ao_designation
             self.rto = self.acc_officer.rto
-
+    # CRUD methods (and name_get, name_search, ...) overrides
+    # Action methods
+    # Business methods
 
 
 #Correspondence Accessing Officer Class
 class CorresAccOfficer(models.Model):
+    #private attributes
     _name = 'corres.acc.officer'
+    _description = 'CorrespondenceAssessingOfficer'
+    # Fields declaration
     name                    = fields.Char("Name")
     ao_zone                 = fields.Char('Zone')
     ao_unit                 = fields.Char('Unit')
     ao_designation          = fields.Char('Designation')
     rto                     = fields.Many2one('rto.rto','RTO')
 
-# #Correspondence Zone Class
-# class CorrespondenceType(models.Model):
-#     _name = 'correspondence.zone'
-#     name  = fields.Char("Name")
-
-# #Correspondence Unit Class
-# class CorrespondenceType(models.Model):
-#     _name = 'correspondence.unit'
-#     name  = fields.Char("Name")
-
-# #Correspondence Designation Class
-# class CorrespondenceType(models.Model):
-#     _name = 'correspondence.designation'
-#     name  = fields.Char("Name")
-
-
 
 #Correspondence Type Class
 class CorrespondenceType(models.Model):
+    #private attributes
     _name = 'correspondence.type'
+    _description = 'CorrespondenceType'
+    # Fields declaration
     name  = fields.Char("Name")
 
 #Correspondence Stages Class
 class CorrespondenceStages(models.Model):
+    #private attributes
     _name = 'correspondence.stage'
+    _description = 'CorrespondenceStages'
+    # Fields declaration
     name  = fields.Char("Name")
     sequence  = fields.Char("Sequence")
 
 
 # Assessment Class 
 class AssessmentCorres(models.Model):
+    #private attributes
     _name = 'assessment.corres'
+    _description = 'AssessmentCorres'
     _inherit = 'corres.corres.prototype'
-
+    # Fields declaration
     vv = fields.Char(compute="_compute_rec")
+    # compute and search fields, in the same order of fields declaration
     @api.multi
     def _compute_rec(self):
         self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
@@ -128,10 +136,13 @@ class AssessmentCorres(models.Model):
 
 # Audit Class 
 class AuditCorres(models.Model):
+    #private attributes
     _name = 'audit.corres'
+    _description = 'AuditCorres'
     _inherit = 'corres.corres.prototype'
-
+    # Fields declaration
     vv = fields.Char(compute="_compute_rec")
+    # compute and search fields, in the same order of fields declaration
     @api.multi
     def _compute_rec(self):
         self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
@@ -139,10 +150,13 @@ class AuditCorres(models.Model):
 
 # Rectification Class 
 class RectificationCorres(models.Model):
+    #private attributes
     _name = 'rectification.corres'
+    _description = 'RectificationCorres'
     _inherit = 'corres.corres.prototype'
-
+    # Fields declaration
     vv = fields.Char(compute="_compute_rec")
+    # compute and search fields, in the same order of fields declaration
     @api.multi
     def _compute_rec(self):
         self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
@@ -150,10 +164,13 @@ class RectificationCorres(models.Model):
 
 # Recovery Class 
 class RecoveryCorres(models.Model):
+    #private attributes
     _name = 'recovery.corres'
+    _description = 'RecoveryCorres'
     _inherit = 'corres.corres.prototype'
-
+    # Fields declaration
     vv = fields.Char(compute="_compute_rec")
+    # compute and search fields, in the same order of fields declaration
     @api.multi
     def _compute_rec(self):
         self.vv = '(%s) Notice No %s u/s %s for Tax Year %s' %(self.client_name.name,self.notice_no,self.section_no ,self.tax_year)
@@ -162,22 +179,25 @@ class RecoveryCorres(models.Model):
 
 # RTO Class
 class RTO(models.Model):
+    #private attributes
     _name = 'rto.rto'
+    _description = 'RTO'
+    # Fields declaration
     rto   = fields.Char('RTO')
     code  = fields.Char('Code')
-
+    # Record name overrides
     _rec_name = 'rto'
 
 
 #Correspondence History Class
-class correspondencehistory(models.Model):
+class CorrespondenceHistory(models.Model):
+    #private attributes
     _name = 'correspondence.history'
-
+    _description = 'CorrespondenceHistory'
+    # Fields declaration
     hearing_date            = fields.Date('Hearing Date',required=True)
     atendee_name            = fields.Many2one('hr.employee','Attendee Name')
-
     x_type                  = fields.Many2one('correspondence.history.type',string="Type")
-
     nex_hear_dat            = fields.Date('Next Hearing Date')          
     remarks                 = fields.Text()
     attachment              = fields.Many2one('correspondence.attachment','Attachment')
@@ -195,11 +215,33 @@ class correspondencehistory(models.Model):
     hearing_date_str        = fields.Char('Hearing Date')
     hearing_date_now        = fields.Integer(string="Hearing Weeknumber")
     today_date_curr         = fields.Integer(string="Current Weeknumber")
-
     correspondence_his      = fields.Many2one('correspondence.correspondence',
     ondelete='cascade', string="Name", required=True)
-
     attachment_file =  fields.Binary(string="Multi Attachment")
+    # Constraints and onchanges
+    @api.onchange('remarks')
+    def _onchange_remarks(self):
+        self.client_name = self.correspondence_his.client_name.id
+        self.section_no = self.correspondence_his.section_no
+        self.notice_no = self.correspondence_his.notice_no
+        self.assigned_to = self.correspondence_his.assigned_to.id
+        self.tax_year = self.correspondence_his.tax_year
+        self.type_of = self.correspondence_his.type_of.id
+
+    @api.onchange('hearing_date')
+    def _onchange_hearing_date(self):
+        if self.hearing_date:
+            hearing_date = datetime.strptime(self.hearing_date,"%Y-%m-%d")
+            weeknumber = hearing_date.isocalendar()[1]
+            now_date = datetime.now()
+            now_weeknumber = now_date.isocalendar()[1]
+
+            result = hearing_date.strftime("%d %b, %Y") 
+            self.today_date_curr = int(now_weeknumber)
+            self.hearing_date_now = int(weeknumber)
+            self.hearing_date_str = result
+
+    # Business methods
     @api.multi
     def import_attachment(self):
         fileobj = TemporaryFile('w+')
@@ -211,59 +253,33 @@ class correspondencehistory(models.Model):
         self.status = "Done"
         self.done_date = datetime.now()
 
-    @api.onchange('remarks')
-    def onchange_remarks(self):
-        self.client_name = self.correspondence_his.client_name.id
-        self.section_no = self.correspondence_his.section_no
-        self.notice_no = self.correspondence_his.notice_no
-        self.assigned_to = self.correspondence_his.assigned_to.id
-        self.tax_year = self.correspondence_his.tax_year
-        self.type_of = self.correspondence_his.type_of.id
-
-    @api.onchange('hearing_date')
-    def onchange_hearing_date(self):
-        if self.hearing_date:
-            hearing_date = datetime.strptime(self.hearing_date,"%Y-%m-%d")
-            weeknumber = hearing_date.isocalendar()[1]
-            # weekdayeng = calendar.day_name[hearing_date.weekday()]
-            # weekdaynum = hearing_date.weekday()
-            now_date = datetime.now()
-            now_weeknumber = now_date.isocalendar()[1]
-
-            result = hearing_date.strftime("%d %b, %Y") 
-            self.today_date_curr = int(now_weeknumber)
-            self.hearing_date_now = int(weeknumber)
-            self.hearing_date_str = result
-
-    # def _getWeekHearing(self):
-    #     if self.hearing_date:
-    #         hearing_date = datetime.strptime(self.hearing_date,"%Y-%m-%d")
-    #         weeknumber = hearing_date.isocalendar()[1]
-
-    def _getCurrentWeek(self):
-        if self.hearing_date:
-            now_date = datetime.now()
-            weeknumber = now_date.isocalendar()[1]
-            self.today_date_curr = weeknumber
-
-
 #Correspondence History Type Class
 class CorrespondenceHistoryType(models.Model):
+    #private attributes
     _name = 'correspondence.history.type'
+    _description = 'CorrespondenceHistoryType'
+    # Fields declaration
     name  = fields.Char("Name")
 
 
 #Correspondence Attachment Class
 class CorrespondenceAttachment(models.Model):
+    #private attributes
     _name = 'correspondence.attachment'
+    _description = 'CorrespondenceAttachment'
+    # Fields declaration
     attachment_tree_ids = fields.One2many('correspondence.attachment.tree','attachment_id')
 
 #Correspondence Attachment Tree Class
 class CorrespondenceAttachmentTree(models.Model):
+    #private attributes
     _name = 'correspondence.attachment.tree'
+    _description = 'CorrespondenceAttachmentTree'
+    # Fields declaration
     name  = fields.Char("Description")
     attachment =  fields.Binary(string="Attachment")
     attachment_id = fields.Many2one('correspondence.attachment','Attachment')
+    # Business methods
     @api.multi
     def import_attachment(self):
         fileobj = TemporaryFile('w+')
@@ -273,8 +289,11 @@ class CorrespondenceAttachmentTree(models.Model):
 
 
 # Correspondence File Type Class
-class correspondencefiletype(models.Model):
+class CorrespondenceFileType(models.Model):
+    #private attributes
     _name = 'correspondence.file.type'
+    _description = 'CorrespondenceFileType'
+    # Fields declaration
     date = fields.Date('Date')
     assessing_officer = fields.Many2one('corres.acc.officer','Assessing Officer')
     notice_no = fields.Char("Notice No")
@@ -286,13 +305,13 @@ class correspondencefiletype(models.Model):
         ('draft','Draft'),
         ('validate','Validated'),
         ],string="Stage", default="draft")
-
     vv                      = fields.Char(compute="_compute_rec")
+    # compute and search fields, in the same order of fields declaration
     @api.multi
     def _compute_rec(self):
         self.vv = 'Notice No %s dated %s for %s' %(self.notice_no,self.date ,self.customer_name)
     _rec_name = 'vv'
-
+    # Action methods
     @api.multi
     def validate(self):
         self.write({'state': 'validate'})

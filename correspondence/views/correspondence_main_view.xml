@@ -463,7 +463,7 @@
                                         <field name="attachment"/>
                                         <field name="acc_officer"/>
                                         <field name="status"/>
-                                        <field name="hearing_date_now"/>
+                                        <field name="hearing_date_now" invisible="True"/>
                                     </group>
                                     <group name="group_right">
                                         <field name="nex_hear_dat"/>
@@ -474,8 +474,8 @@
                                         <field name="internal_file_no"/>
                                         <field name="attachment_file"/>
                                         <field name="cor_file_type"/>
-                                        <field name="done_date"/>
-                                        <field name="today_date_curr"/>
+                                        <field name="done_date" invisible="True"/>
+                                        <field name="today_date_curr" invisible="True"/>
                                     </group>
                                 </group>
                             </sheet>
@@ -507,9 +507,6 @@
                             <field name="acc_officer"/>
                             <field name="cor_file_type"/>
                             <field name="status"/>
-                            <field name="done_date"/>
-                            <field name="hearing_date_now"/>
-                            <field name="today_date_curr"/>
                         </tree>
                     </field>
                 </record>
@@ -757,7 +754,6 @@
                     </field>
                 </record>
             <!--************************[Tree View-ENDS]**********************-->
-
         <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
 
 

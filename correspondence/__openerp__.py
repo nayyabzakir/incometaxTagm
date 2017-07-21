@@ -18,6 +18,6 @@
     'depends': ['base','hr'],
 
     'data': [
-        'templates.xml',
+        'views/correspondence_main_view.xml',
     ],
 }
