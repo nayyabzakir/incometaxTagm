@@ -10,6 +10,7 @@ class non_cash_reciepts(models.Model):
 	_name      = 'non.cash.receipts'
 	_description = "Non Cash Receipts"
 	_inherit   = ['mail.thread', 'ir.needaction_mixin']
+	_rec_name = 'assets'
 
 	name           = fields.Many2one('res.partner','Client Name', required=True)
 	assets         = fields.Many2one('wealth.assets',domain="[('assets_id.name.id','=',name)]")

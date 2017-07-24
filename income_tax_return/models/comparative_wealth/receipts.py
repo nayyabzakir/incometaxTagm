@@ -8,7 +8,7 @@ from openerp import models, fields, api
 class receipts(models.Model):
 	_name = 'receipts'
 	description = fields.Char(string = "Description", required=True)
-	capital_gain = fields.Many2one('capital_gain.capital_gain', domain="[('name','=',parent.name)]", string = 'Capital Gain')
+	capital_gain = fields.Many2one('capital_gain.capital_gain', domain="[('name','=',parent.name)]", string = 'Capital Gain', ondelete='cascade')
 
 	non_cash_receipts = fields.Many2one('non.cash.receipts', domain="[('name','=',parent.name)]", string = 'Non Cash Receipts', ondelete='cascade')
 
@@ -61,10 +61,10 @@ class receipts(models.Model):
 
 	@api.multi
 	def unlink(self):
-		if self.non_cash_receipts:
-			ncr_rcd = self.env['non.cash.receipts'].search([('id','=',self.non_cash_receipts.id)])
-			ncr_rcd.unlink()
-
+		ncr_rcd = self.env['non.cash.receipts'].search([('id','=',self.non_cash_receipts.id)])
+		cgt_rec = self.env['capital_gain.capital_gain'].search([('id','=',self.capital_gain.id)])
+		cgt_rec.unlink()
+		ncr_rcd.unlink()
 		return super(receipts, self).unlink()
 	# @api.model
 	# def create(self, vals):
