@@ -101,7 +101,7 @@ class comparative_wealth(models.Model):
 		self.sendCapitalGainIncome()
 		self.deductCapitalAmount()
 		self.createCashBankAssets()
-		self.createPaymentOnCreateAssets()
+		# self.createPaymentOnCreateAssets()
 		self.getCashDifference()
 		self.createWealthStClosing()
 		self.createOpeningReconcil()
@@ -318,7 +318,8 @@ class comparative_wealth(models.Model):
 										if recipts != None and payments != None:
 											result = recipts - payments
 											self.env.cr.execute("UPDATE wealth_liability SET "+record_field+" = "+str(result)+"  WHERE  receipt_id = "+str(line.id)+"")
-		
+
+
 		if self.cash_receipts_ids:
 			for recipt in self.cash_receipts_ids.search([('receipt_type','=','liability'),('receipts_id','=',self.id)]):
 				if len(self.cash_payments_ids.search([('receipt_type','=','loan_repayment'),('payments_id','=',self.id)])) == 0:
@@ -353,6 +354,13 @@ class comparative_wealth(models.Model):
 									recipts = recipts = self.addPreColumnsAssets(10, x, 'receipts', recipt.id)
 									if recipts != None:
 										self.env.cr.execute("UPDATE wealth_liability SET "+record_field+" = "+str(recipts)+"  WHERE  receipt_id = "+str(recipt.id)+"")
+
+		if self.cash_payments_ids:
+			for payments in self.cash_payments_ids.search([('receipt_type','=','loan_repayment'),('payments_id','=',self.id)]):
+				loan_repayment_rec = self.cash_receipts_ids.search([('receipt_type','=','liability'),('receipts_id','=',self.id),('description','=',payments.description)])
+				if not loan_repayment_rec:
+					raise Warning("Description of Liability or Loan Payments records does not match.")
+
 
 	def sendCapitalGainIncome(self):
 		if self.cash_receipts_ids:
@@ -527,35 +535,36 @@ class comparative_wealth(models.Model):
 ################################################## Create Assets of NON CASH RECIEPTS from RECEIPTS#################################################
 	def createNCRAssets(self):
 		for line in self.cash_receipts_ids.search([('receipt_type','=','ncr'),('receipts_id.id','=',self.id)]):
-			if not self.wealth_assets_ids.search([('receipts_id','=',line.id)]):
-				record = self.wealth_assets_ids.create({
-					'description' : line.description,
-					'assets_id' : self.id,
-					'receipts_id': line.id
-					})
-				emp_list = 0
-				for ncr in line.non_cash_receipts:
-					ncr.assets = record.id
-				for rec in line.non_cash_receipts.non_receipt_ids:
-					year = int(rec.ncr_year.code)
-					record_fields = "y"
-					emp_list += rec.remaining_value
-					for x in xrange(year,2025):
-						record_field = record_fields + str(x)
-						self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = 'wealth_assets' AND COLUMN_NAME = '"+record_field+"'")
-						check_column = self.env.cr.fetchone() ####2016
-						if check_column != None:
-							for y in xrange(2010,x+1):
-								record_new = 'y' + str(y)
-								self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(rec.remaining_value)+"  WHERE  receipts_id = "+str(line.id)+"")
-							# if len(line.non_cash_receipts.non_receipt_ids) > 1:
-							# 	break
+			for ncr in line.non_cash_receipts:
+				if not ncr.assets:
+					if not self.wealth_assets_ids.search([('receipts_id','=',line.id)]):
+						record = self.wealth_assets_ids.create({
+							'description' : line.description,
+							'assets_id' : self.id,
+							'receipts_id': line.id
+							})
+						emp_list = 0
+						ncr.assets = record.id
+						for rec in line.non_cash_receipts.non_receipt_ids:
+							year = int(rec.ncr_year.code)
+							record_fields = "y"
+							emp_list += rec.remaining_value
+							for x in xrange(year,2025):
+								record_field = record_fields + str(x)
+								self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = 'wealth_assets' AND COLUMN_NAME = '"+record_field+"'")
+								check_column = self.env.cr.fetchone() ####2016
+								if check_column != None:
+									for y in xrange(2010,x+1):
+										record_new = 'y' + str(y)
+										self.env.cr.execute("UPDATE wealth_assets SET    "+record_field+" = "+str(rec.remaining_value)+"  WHERE  receipts_id = "+str(line.id)+"")
+									# if len(line.non_cash_receipts.non_receipt_ids) > 1:
+									# 	break
 
 			result = 0
 			for rec in line.non_cash_receipts.non_receipt_ids:
 				year = int(rec.ncr_year.code)
 				record_fields = "y"
-				result += rec.remaining_value 
+				result += rec.remaining_value
 				for x in xrange(year,2025):
 					record_field = record_fields + str(x)
 					self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = 'wealth_assets' AND COLUMN_NAME = '"+record_field+"'")
@@ -671,7 +680,7 @@ class comparative_wealth(models.Model):
 			self.sendCapitalGainIncome()
 			self.deductCapitalAmount()
 			self.createCashBankAssets()
-			self.createPaymentOnCreateAssets()
+			# self.createPaymentOnCreateAssets()
 			self.delCapitalGain()
 			# self.createNtrFromReciepts()
 

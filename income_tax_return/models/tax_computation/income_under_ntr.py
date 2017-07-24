@@ -42,3 +42,5 @@ class income_under_ntr(models.Model):
 
 	pnl_id = fields.Many2one('pnl.computation',
         ondelete='cascade', string="PNL Computation ID")
+	mintax_id = fields.Many2one('minimumtax.minimumtax',
+        ondelete='cascade', string="Minimum Tax ID")

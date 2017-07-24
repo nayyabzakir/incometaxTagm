@@ -180,7 +180,7 @@ class tax_computation(models.Model):
 
 	@api.multi
 	def update_computation(self):
-		self.tax_computation_ntr_id.unlink()
+		# self.tax_computation_ntr_id.unlink()
 		self.tax_deduct_link_id.unlink()
 		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
@@ -286,6 +286,7 @@ class tax_computation(models.Model):
 				################### Records Creation For Income Under NTR #################
 				if line.business_name.name.business_type == 'sp':
 					ntr_id = self.tax_computation_ntr_id.search([('pnl_id','=',line.id)])
+					self.createMinitaxUNTR(line.business_name.minimum_tax_ids, self.tax_computation_ntr_id, line.id, self.id)
 					if not ntr_id:
 						self.tax_computation_ntr_id.create({
 							'description' : "Profit for "+line.business_name.name.name,
@@ -293,12 +294,13 @@ class tax_computation(models.Model):
 							'sub_tax_type' : 'nor',
 							'tax_type' : 'ntr',
 							'income_under_ntr_id': self.id,
-							'amount' : line.business_name.tax_profit,
+							'amount' : line.business_name.tax_profit - sum(mintax.profit for mintax in line.business_name.minimum_tax_ids),
 							'pnl_id' : line.id
 							})
 					else:
 						ntr_id.description = "Profit for "+line.business_name.name.name
-						ntr_id.amount = line.business_name.tax_profit
+						ntr_id.amount = line.business_name.tax_profit - sum(mintax.profit for mintax in line.business_name.minimum_tax_ids)
+					
 					################### Records Creation For Income Under FTR #################
 					ftr_id = self.tax_computation_ftr_id.search([('pnl_id','=',line.id)])
 					if not ftr_id:
@@ -326,6 +328,24 @@ class tax_computation(models.Model):
 					else:
 						exempt_id.description = "Profit for "+line.business_name.name.name
 						exempt_id.amount = line.business_name.tax_profit
+
+	def createMinitaxUNTR(self, minTaxRecs, model_UNTR, pnl_id, tax_comp_id):
+		for line in minTaxRecs:
+			old_rec = model_UNTR.search([('pnl_id','=',pnl_id), ('mintax_id','=',line.id)])
+			if not old_rec:
+				model_UNTR.create({
+							'description' : "Profit for "+line.description,
+							'receipt_type' : "bus",
+							'sub_tax_type' : 'nor',
+							'tax_type' : 'ntr',
+							'income_under_ntr_id': tax_comp_id,
+							'amount' : line.profit,
+							'pnl_id' : pnl_id,
+							'mintax_id': line.id,				
+					})
+			else:
+				old_rec.description = "Profit for "+line.description
+				old_rec.amount =  line.profit
 
 
 

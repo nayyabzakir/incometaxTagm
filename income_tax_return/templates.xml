@@ -1039,7 +1039,7 @@
 
             <!--========================[Menu-START]==========================-->
 
-                <menuitem name="Tax Rates Table" id="tax_rates_table_child" parent="menu_income_tax_returns_child" action="tax_rates_table_action" sequence="4"/>
+                <menuitem name="Tax Rates Table" id="tax_rates_table_child" parent="menu_config_child" action="tax_rates_table_action" sequence="4"/>
             <!--************************[Menu-ENDS]***************************-->
         <!--!!______________________[Tax Rates Table-ENDS]__________________________________!!-->
 
@@ -1130,7 +1130,7 @@
 
             <!--========================[Menu-START]==========================-->
 
-                <menuitem name="Capital Gain" id="capital_gain_child" parent="menu_income_tax_returns_child" action="capital_gain_action" sequence="5"/>
+<!--                 <menuitem name="Capital Gain" id="capital_gain_child" parent="menu_income_tax_returns_child" action="capital_gain_action" sequence="5"/> -->
             <!--************************[Menu-ENDS]***************************-->
 
         <!--!!______________________[Capital Gain-ENDS]_____________________________________!!-->
@@ -1206,7 +1206,7 @@
 
             <!--========================[Menu-START]==========================-->
 
-                <menuitem name="Capital Working" id="capital_working_sub_child" parent="menu_income_tax_returns_child" action="capital_working_sub_action" sequence="6"/>
+<!--                 <menuitem name="Capital Working" id="capital_working_sub_child" parent="menu_income_tax_returns_child" action="capital_working_sub_action" sequence="6"/> -->
             <!--************************[Menu-ENDS]***************************-->
         <!--!!______________________[Capital-ENDS]__________________________________________!!-->
 
@@ -1496,7 +1496,7 @@
 
             <!--========================[Menu-START]==========================-->
 
-                <menuitem name="Balance Sheet" id="balance_sheet_sub_child" parent="menu_income_tax_returns_child" action="balance_sheet_sub_action" sequence="6"/>
+<!--                 <menuitem name="Balance Sheet" id="balance_sheet_sub_child" parent="menu_income_tax_returns_child" action="balance_sheet_sub_action" sequence="6"/> -->
             <!--************************[Menu-ENDS]***************************-->
         <!--!!______________________[Capital-ENDS]__________________________________________!!-->
 
@@ -1648,7 +1648,7 @@
 
             <!--========================[Menu-START]==========================-->
 
-                <menuitem name="Non Cash Recipts" id="non_cash_receipt_id" parent="menu_income_tax_returns_child" action="non_cash_receipt_action" sequence="5"/>
+<!--                 <menuitem name="Non Cash Recipts" id="non_cash_receipt_id" parent="menu_income_tax_returns_child" action="non_cash_receipt_action" sequence="5"/> -->
             <!--************************[Menu-ENDS]***************************-->
 
         <!--!!______________________[Capital Gain-ENDS]_____________________________________!!-->
@@ -1717,7 +1717,7 @@
 
             <!--========================[Menu-START]==========================-->
 
-                <menuitem name="Final Tax" id="final_tax_id" parent="menu_income_tax_returns_child" action="final_tax_action" sequence="9"/>
+                <menuitem name="Final Tax" id="final_tax_id" parent="menu_config_child" action="final_tax_action" sequence="9"/>
             <!--************************[Menu-ENDS]***************************-->
 
         <!--!!______________________[Final Tax-ENDS]_____________________________________!!-->
