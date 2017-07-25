@@ -14,10 +14,10 @@ class final_tax(models.Model):
 	name           	= fields.Char()
 	rate         	= fields.Float()
 	section 		= fields.Char()
-	model_name 		= fields.Char(compute="_compute_rec")
+	model_name 		= fields.Char()
 
-	@api.multi
-	def _compute_rec(self):
+	@api.onchange('name','rate','section')
+	def _onchange_name_rate(self):
 		self.model_name = '%s @  %s %s u/s %s' %(self.name,self.rate,'%',self.section)
 
 

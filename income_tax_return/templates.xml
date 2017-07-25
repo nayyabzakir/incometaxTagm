@@ -1458,7 +1458,7 @@
                                             <field name="balance_sheet_cap_id" nolabel='1'>
                                                 <tree editable="bottom">
                                                     <field name="description"/>
-                                                    <field name="selection_type"/>
+                                                    <field name="selection_type" invisible="True"/>
                                                     <field name="y2016" sum="Total"/>
                                                     <field name="y2015" sum="Total"/>
                                                     <field name="y2014" sum="Total"/>
@@ -1675,6 +1675,7 @@
                                     </group>
                                     <group name="group_right">
                                         <field name="section" />
+                                        <field name="model_name" invisible="True"/>
                                         
                                     </group> 
                                 </group>

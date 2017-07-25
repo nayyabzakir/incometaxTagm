@@ -33,10 +33,12 @@ class balance_sheet_sub(models.Model):
 	def write(self, vals):
 		result = super(balance_sheet_sub, self).write(vals)
 		self.getCashDifference()
+		self.getCapitalLine()
 		return result
 	@api.multi
 	def update(self):
 		self.getCashDifference()
+		self.getCapitalLine()
 
 		
 	def getCashDifference(self):
@@ -53,7 +55,17 @@ class balance_sheet_sub(models.Model):
 					net = (total_assets - total_liability) - total_capital
 					self.env.cr.execute("update balance_sheet_sub_balance_sheet_sub set "+str(cw_req_field)+" =  "+str(net)+" WHERE id = "+str(self.id)+"")
 
+	def getCapitalLine(self):
+		if self.tax_comp_bus.capital_closing:
+			self.balance_sheet_cap_id.unlink()
+			record = self.balance_sheet_cap_id.create({
+				'description':'Capital Closing',
+				'balance_sheet_sub_cap_id':self.id,
+				})
+			req_field = 'y' + str(self.tax_comp_bus.tax_year.code)
+			self.updateValues('balance_sheet_sub_sub_cap_balance_sheet_sub_sub_cap',req_field,record.id, self.tax_comp_bus.capital_closing)
 
+############################################### SELECT SQL Query For SUM of Records ##############################################################################
 	def getValues(self, table_name, column_name, parent_id):
 		result = 0
 		self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = '"+table_name+"' AND COLUMN_NAME = '"+column_name+"'")
@@ -64,6 +76,13 @@ class balance_sheet_sub(models.Model):
 			if total != None:
 				result = result + total
 			return result
+############################################### Update SQL Query For Single Record ##############################################################################
+	def updateValues(self, table_name, column_name, parent_id, amount):
+		self.env.cr.execute("SELECT * FROM information_schema.COLUMNS WHERE TABLE_NAME = '"+table_name+"' AND COLUMN_NAME = '"+column_name+"'")
+		check_column = self.env.cr.fetchone()
+		if check_column != None:
+			self.env.cr.execute("UPDATE "+str(table_name)+" SET "+str(column_name)+" = "+str(amount)+"  WHERE id = "+str(parent_id)+"")
+			return True
 	# @api.multi
 	# def write(self, vals):
 	# 	result = super(balance_sheet_sub, self).write(vals)

@@ -65,7 +65,7 @@ class tax_computation(models.Model):
 	tc_less_property    = fields.Float(string="15 Less Property")
 	tc_ntr 				= fields.Float(string="16 NTR")
 	tc_tax_liabilty		= fields.Float(string="17 Tax Liability Under NTR")
-	tc_tax_already_ded	= fields.Float(string="18 Tax Already Deducted")
+	tc_tax_already_ded	= fields.Float(string="18 Tax Already Deducted Under NTR")
 	tc_tax_credits		= fields.Float(string="18.5 Tax Credits")
 	tc_tax_pay_refund	= fields.Float(string="19 Net Tax Payable / (Refundable)")
 	tc_income_charg_uftr= fields.Float(string="20 Income Chargable to Tax under FTR")
@@ -181,27 +181,28 @@ class tax_computation(models.Model):
 	@api.multi
 	def update_computation(self):
 		# self.tax_computation_ntr_id.unlink()
-		self.tax_deduct_link_id.unlink()
-		required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
+		# self.tax_deduct_link_id.unlink()
+		# required_class = self.env['comparative.wealth'].search([('name','=',self.client_name.id)])
 
-		self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
-		self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
-		self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
-		self.income_under_ftr = sum(line.amount for line in self.tax_computation_ftr_id)
-		self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'adjustable')
-		self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
-		self.taxable_income = self.income_under_ntr - self.deductible_allowance
-		self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
-		self.createIncomeUNTR()
-		self.createIncomeUFTR()
-		self.createTaxDeducted()
-		self.createIncomeUExempt()
-		self.createDedAllowance()
-		self.createSBI()
-		self.updateCGTAmount()
+		# self.income_under_ntr = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type != 'exempt')
+		# self.exempt_income = sum(line.amount for line in self.tax_computation_ntr_id if line.tax_type == 'exempt')
+		# self.tax_deduct = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'tax_ftr')
+		# self.income_under_ftr = sum(line.amount for line in self.tax_computation_ftr_id)
+		# self.tax_adjust = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'adjustable')
+		# self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
+		# self.taxable_income = self.income_under_ntr - self.deductible_allowance
+		# self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
+		# self.createIncomeUNTR()
+		# self.createIncomeUFTR()
+		# self.createTaxDeducted()
+		# self.createIncomeUExempt()
+		# self.createDedAllowance()
+		self.createDedAllSalary()
+		# self.createSBI()
+		# self.updateCGTAmount()
 		self.calculateTaxSBI()
-		self.getBusinessProfit()
-		self.computeTaxCredit()
+		# self.getBusinessProfit()
+		# self.computeTaxCredit()
 		self.getTaxCompDetails()
 		self.get_tax_rate()
 
@@ -224,7 +225,7 @@ class tax_computation(models.Model):
 		self.tc_tax_already_ded =  sum(line.amount for line in self.tax_deduct_link_id if line.tax_type =='adjustable')
 		self.tc_tax_credits = sum(line.tax for line in self.tax_credits_id)
 		self.tc_tax_pay_refund = self.tc_tax_liabilty - self.tc_tax_already_ded - self.tc_tax_credits
-		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'NTR')
+		self.tc_less_ded_allowed =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'NTR' or line.deductible_allowance_ids.name == 'Salary')
 		self.tc_taxable_ifd =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'Property')
 		self.tc_cgt_ded =  sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'CGT (IMV)')
 		self.tc_cgt_ded_s = sum(line.ded_allowed for line in self.tax_computation_deductible_id if line.deductible_allowance_ids.name == 'CGT (SEC)')
@@ -249,11 +250,12 @@ class tax_computation(models.Model):
 		self.tc_cgt_pay_refund = self.tc_tax_pay_cg - self.tc_tax_paid_cg
 		self.tc_ttl_ntr = self.tc_tax_liabilty
 		self.tc_ttl_ftr = self.tc_tax_charge_ftr
-		self.tc_ttl_sbi = self.tc_tax_liability_ifd + self.tc_tax_pay_cg
+		self.tc_tax_pay_cg_s = sum(line.tax for line in self.tax_computation_sbi_id if line.receipt_type =='cgt' and line.im_sec_type == 'sec')
+		self.tc_ttl_sbi = self.tc_tax_liability_ifd + self.tc_tax_pay_cg + self.tc_tax_pay_cg_s
 		self.tc_total_tax_lib = self.tc_ttl_ntr + self.tc_ttl_ftr + self.tc_ttl_sbi
 		self.tc_ttd_ntr = self.tc_tax_already_ded
 		self.tc_ttd_ftr = self.tc_tax_deduct_ftr
-		self.tc_ttd_sbi = self.tc_tax_paid_cg + self.tc_ifp_ded
+		self.tc_ttd_sbi = self.tc_tax_paid_cg + self.tc_ifp_ded + self.tc_tax_paid_cg_s
 		self.tc_total_tax_ded = self.tc_ttd_ntr + self.tc_ttd_ftr + self.tc_ttd_sbi
 		self.tc_final_pay_refund = self.tc_total_tax_lib - self.tc_total_tax_ded
 
@@ -444,10 +446,11 @@ class tax_computation(models.Model):
 
 	def createDedAllowance(self):
 		if self.comparative_id:
-			self.tax_computation_deductible_id.unlink()
 			year = 'y'+str(self.tax_year.code)
 			if self.comparative_id.cash_payments_ids:
 				for line in self.comparative_id.cash_payments_ids:
+					old_recs = self.tax_computation_deductible_id.search([('payment_id','=',line.id)])
+					old_recs.unlink()
 					if line.receipt_type == 'ded_all':
 						print line
 						self.tax_computation_deductible_id.create({
@@ -460,6 +463,18 @@ class tax_computation(models.Model):
 		else:
 			raise Warning("Please select Comparative Wealth for :",self.client_name.name)
 
+	def createDedAllSalary(self):
+		if self.tax_computation_ntr_id:
+			for line in self.tax_computation_ntr_id:
+				if line.receipt_type == 'sal':
+					old_recs = self.tax_computation_deductible_id.search([('income_under_ntr_id','=',line.id)])
+					if not old_recs:
+						self.tax_computation_deductible_id.create({
+							'description' : "Medical Allowance",
+							'deductible_allowance_id': self.id,
+							'deductible_allowance_ids': self.env['deductable.allowance'].search([('name','=','Salary')])[0].id,
+							'income_under_ntr_id': line.id,
+							})
 	def updateCGTAmount(self):
 		if self.comparative_id:
 
@@ -509,7 +524,7 @@ class tax_computation(models.Model):
 					else:
 						required_class = self.env['tax_rates_table.tax_rates_table'].search([('tax_year','=',self.tax_year.id)])
 						for rate in required_class.securities_disposal_ids:
-							if rate.period_from <= line.no_of_months < rate.period_to:
+							if rate.period_from <= line.no_of_months <= rate.period_to:
 								line.tax = line.amount * (rate.rate / 100)
 
 
