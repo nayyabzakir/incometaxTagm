@@ -192,17 +192,17 @@ class tax_computation(models.Model):
 		# self.tax_deduct_min = sum(line.amount for line in self.tax_deduct_link_id if line.tax_type == 'minimum')
 		# self.taxable_income = self.income_under_ntr - self.deductible_allowance
 		# self.payable_tax = self.tax_liability + self.portion_of_minimum_tax
-		# self.createIncomeUNTR()
-		# self.createIncomeUFTR()
-		# self.createTaxDeducted()
-		# self.createIncomeUExempt()
-		# self.createDedAllowance()
+		self.createIncomeUNTR()
+		self.createIncomeUFTR()
+		self.createTaxDeducted()
+		self.createIncomeUExempt()
+		self.createDedAllowance()
+		self.createSBI()
 		self.createDedAllSalary()
-		# self.createSBI()
-		# self.updateCGTAmount()
+		self.updateCGTAmount()
 		self.calculateTaxSBI()
-		# self.getBusinessProfit()
-		# self.computeTaxCredit()
+		self.getBusinessProfit()
+		self.computeTaxCredit()
 		self.getTaxCompDetails()
 		self.get_tax_rate()
 
@@ -465,14 +465,15 @@ class tax_computation(models.Model):
 
 	def createDedAllSalary(self):
 		if self.tax_computation_ntr_id:
+			old_recs = self.tax_computation_deductible_id.search([('description','=',"Medical Allowance"),('deductible_allowance_id','=',self.id,)])
+			deductible_allowance_ids = self.env['deductable.allowance'].search([('name','=','Salary')]).id
 			for line in self.tax_computation_ntr_id:
 				if line.receipt_type == 'sal':
-					old_recs = self.tax_computation_deductible_id.search([('income_under_ntr_id','=',line.id)])
 					if not old_recs:
 						self.tax_computation_deductible_id.create({
 							'description' : "Medical Allowance",
 							'deductible_allowance_id': self.id,
-							'deductible_allowance_ids': self.env['deductable.allowance'].search([('name','=','Salary')])[0].id,
+							'deductible_allowance_ids': deductible_allowance_ids,
 							'income_under_ntr_id': line.id,
 							})
 	def updateCGTAmount(self):

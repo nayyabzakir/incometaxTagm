@@ -58,7 +58,8 @@ class receipts(models.Model):
 
 	receipts_id = fields.Many2one('comparative.wealth',
         ondelete='cascade', string="Wealth Reconciliation", required=True)
-
+	business_name_id = fields.Many2one('business.name',
+        ondelete='cascade', string="Business Name ID")
 	@api.multi
 	def unlink(self):
 		ncr_rcd = self.env['non.cash.receipts'].search([('id','=',self.non_cash_receipts.id)])

@@ -41,3 +41,6 @@ class wealth_reconciliation_income(models.Model):
 	receipt_id = fields.Many2one('receipts',
         ondelete='cascade', string="receipts")
 	business_id = fields.Many2one('pnl.computation', 'Business ID')
+
+	business_name_id = fields.Many2one('business.name',
+        ondelete='cascade', string="Business Name ID")

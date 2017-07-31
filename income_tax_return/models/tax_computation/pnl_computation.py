@@ -121,36 +121,36 @@ class pnl_computation(models.Model):
 			for x in self.profit_loss_link_id:
 				x.ntr =  x.total * ntr_ratio
 				x.ftr_exempt =  x.total * ftr_ratio
-		self.ntr_income =  self.sale_under_ntr + self.other_sale_under_ntr
-		
-		self.direct_expenses =  sum(line.total for line in self.profit_loss_link_id if line.types =='direct_expenses' and line.admissible == 'admissible')
-		self.cost_of_sales =  self.purchases + self.direct_expenses +  self.opening - self.closing
-		self.gross_profit = self.ntr_income - self.ntr_cost_of_sales
-		# self.accounting_depreciation =  sum(line.ntr for line in self.profit_loss_link_id if line.admissible =='depreciation')
-		self.ntr_cost_of_sales = self.cost_of_sales * (self.sale_under_ntr/self.total_sale)
-		self.ntr_expense =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible') 
-		self.inadmissible_expenses =  sum(line.ntr for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
-		self.ntr_profit_Loss = self.gross_profit - self.ntr_expense
-		self.tax_profit = self.ntr_profit_Loss + self.accounting_depreciation  + self.inadmissible_expenses - self.tax_depreciation
-		self.tax_profit_min = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * self.ntr_min_sales
+			self.ntr_income =  self.sale_under_ntr + self.other_sale_under_ntr
+			
+			self.direct_expenses =  sum(line.total for line in self.profit_loss_link_id if line.types =='direct_expenses' and line.admissible == 'admissible')
+			self.cost_of_sales =  self.purchases + self.direct_expenses +  self.opening - self.closing
+			self.gross_profit = self.ntr_income - self.ntr_cost_of_sales
+			# self.accounting_depreciation =  sum(line.ntr for line in self.profit_loss_link_id if line.admissible =='depreciation')
+			self.ntr_cost_of_sales = self.cost_of_sales * (self.sale_under_ntr/self.total_sale)
+			self.ntr_expense =  sum(line.ntr for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible') 
+			self.inadmissible_expenses =  sum(line.ntr for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
+			self.ntr_profit_Loss = self.gross_profit - self.ntr_expense
+			self.tax_profit = self.ntr_profit_Loss + self.accounting_depreciation  + self.inadmissible_expenses - self.tax_depreciation
+			self.tax_profit_min = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * self.ntr_min_sales
 
 
 
-		self.ftr_income =  self.sale_under_ftr + self.other_sale_under_ftr
-		self.ftr_cost_of_sales = self.cost_of_sales * (self.sale_under_ftr/self.total_sale) 
-		self.ftr_expense =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible')
-		self.ftr_gross_profit = self.ftr_income - self.ftr_cost_of_sales
-		self.ftr_profit_Loss = self.ftr_gross_profit - self.ftr_expense
-		# self.ftr_accounting_depreciation =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.admissible =='depreciation')
-		self.ftr_inadmissible_expenses =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
-		self.ftr_tax_profit = self.ftr_profit_Loss + self.ftr_accounting_depreciation  + self.ftr_inadmissible_expenses - self.ftr_tax_depreciation
-		
-		self.accounting_depreciation = (sum(line.depreciation for line in self.accounting_depreciation_ids)) * (self.sale_under_ntr / self.total_sale)
-		self.tax_depreciation = (sum(line.depreciation for line in self.accounting_tax_ids)) * (self.sale_under_ntr / self.total_sale)
-		self.ftr_tax_depreciation = (sum(line.depreciation for line in self.accounting_tax_ids)) * (self.sale_under_ftr / self.total_sale)
-		self.ftr_accounting_depreciation = (sum(line.depreciation for line in self.accounting_depreciation_ids)) * (self.sale_under_ftr / self.total_sale)
+			self.ftr_income =  self.sale_under_ftr + self.other_sale_under_ftr
+			self.ftr_cost_of_sales = self.cost_of_sales * (self.sale_under_ftr/self.total_sale) 
+			self.ftr_expense =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.types =='indirect_expenses' and line.admissible == 'admissible')
+			self.ftr_gross_profit = self.ftr_income - self.ftr_cost_of_sales
+			self.ftr_profit_Loss = self.ftr_gross_profit - self.ftr_expense
+			# self.ftr_accounting_depreciation =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.admissible =='depreciation')
+			self.ftr_inadmissible_expenses =  sum(line.ftr_exempt for line in self.profit_loss_link_id if line.types !='income' and line.admissible == 'in_admissible')
+			self.ftr_tax_profit = self.ftr_profit_Loss + self.ftr_accounting_depreciation  + self.ftr_inadmissible_expenses - self.ftr_tax_depreciation
+			
+			self.accounting_depreciation = (sum(line.depreciation for line in self.accounting_depreciation_ids)) * (self.sale_under_ntr / self.total_sale)
+			self.tax_depreciation = (sum(line.depreciation for line in self.accounting_tax_ids)) * (self.sale_under_ntr / self.total_sale)
+			self.ftr_tax_depreciation = (sum(line.depreciation for line in self.accounting_tax_ids)) * (self.sale_under_ftr / self.total_sale)
+			self.ftr_accounting_depreciation = (sum(line.depreciation for line in self.accounting_depreciation_ids)) * (self.sale_under_ftr / self.total_sale)
 
-		self.other_sale_under_ntr = sum(line.capital_gain for line in self.accounting_tax_ids)
+			self.other_sale_under_ntr = sum(line.capital_gain for line in self.accounting_tax_ids)
 
 		self.update_opening()
 		self.update_tax_depriciation()

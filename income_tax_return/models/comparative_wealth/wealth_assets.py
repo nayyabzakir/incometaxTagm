@@ -41,6 +41,10 @@ class wealth_assets(models.Model):
         ondelete='cascade', string="Reconciliation ID")
 	receipts_id = fields.Many2one('receipts',
         ondelete='cascade', string="Receipts")
+	business_name_id = fields.Many2one('business.name',
+        ondelete='cascade', string="Business Name ID")
+
+
 class asset_types(models.Model):
 	_name = 'asset.types'
 

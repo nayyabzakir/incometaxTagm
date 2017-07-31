@@ -97,7 +97,7 @@ class comparative_wealth(models.Model):
 		# self.createPaymentAssets()
 		# self.createNCRAssets()
 		# self.deductCapitalAmount()
-		self.getNCRRecieptValues()
+		# self.getNCRRecieptValues()
 		self.sendNCRIncome()
 		self.sendNCRPayments()
 		self.sendCapitalGainIncome()
@@ -110,7 +110,7 @@ class comparative_wealth(models.Model):
 		self.getReconciliationDiff()
 		self.delCapitalGain()
 		# self.createNtrFromReciepts()
-		# self.update()
+		self.update()
 		return result
 
 	def getReceiptsColumns(self):
@@ -748,15 +748,15 @@ class comparative_wealth(models.Model):
 			self.getReceiptsColumns()
 			self.createReceiptIncome()
 			self.createPaymentExpense()
-			self.createPaymentAssets()
+			# self.createPaymentAssets()
 			self.sendCashBankOpening()
 			self.createLiabilityRecords()
-			self.createNCRAssets()
-			self.getNCRRecieptValues()
+			# self.createNCRAssets()
+			# self.getNCRRecieptValues()
 			self.sendNCRIncome()
 			self.sendNCRPayments()
 			self.sendCapitalGainIncome()
-			self.deductCapitalAmount()
+			# self.deductCapitalAmount()
 			self.createCashBankAssets()
 			# self.createPaymentOnCreateAssets()
 			self.delCapitalGain()
@@ -766,45 +766,47 @@ class comparative_wealth(models.Model):
 		 		if line.pnl_computation:
 			 		for rec in line.pnl_computation:
 		############################## Sending Capital profit_for_period To wealth_reconciliation_income in Comparitive Wealth ######################################
-			 			if not self.wealth_reconciliation_income_ids.search([('description','=',"Profit "+rec.business_name.name.name)]):
+			 			if not self.wealth_reconciliation_income_ids.search([('description','=',"Profit "+rec.business_name.name.name),('business_name_id','=',rec.business_name.name.id)]):
 							new_line = self.wealth_reconciliation_income_ids.create({
 								'description' : "Profit "+rec.business_name.name.name,
 								'receipt_type' : 'taxable',
 								'wealth_income_id' : self.id,
+								'business_name_id': rec.business_name.name.id,
 								})
 							if line.tax_year:
 								year = 'y'+line.tax_year.name
 								# if 'y'+line.tax_year.name == line.browse(year).id:
 								self.env.cr.execute("update wealth_reconciliation_income set "+str(year)+" =  "+str(rec.business_name.profit_for_period)+" WHERE id = "+str(new_line.id)+"")
-		 					print "xxxxxxxxxxxxxxxxxxxxxxxx"
 			 			
 			 			for record in self.wealth_reconciliation_income_ids:
-			 				if record.description == "Profit "+rec.business_name.name.name:
+			 				if record.description == "Profit "+rec.business_name.name.name and record.business_name_id.id == rec.business_name.name.id:
 								if line.tax_year:
 									year = 'y'+line.tax_year.name
 									# if 'y'+line.tax_year.name == line.browse(year).id:
 									self.env.cr.execute("update wealth_reconciliation_income set "+str(year)+" =  "+str(rec.business_name.profit_for_period)+" WHERE id = "+str(record.id)+"") 			
 		############################## Sending Capital Closing To wealth_assets in Comparitive Wealth ######################################
-			 			if not self.wealth_assets_ids.search([('description','=',rec.business_name.name.name)]):
+			 			if not self.wealth_assets_ids.search([('description','=',rec.business_name.name.name),('business_name_id','=',rec.business_name.name.id)]):
 							wealth_assets_line = self.wealth_assets_ids.create({
 								'description' : rec.business_name.name.name,
 								'assets_id' : self.id,
+								'business_name_id': rec.business_name.name.id,
 								})
 							if line.tax_year:
 								year = 'y'+line.tax_year.name
 								# if 'y'+line.tax_year.name == line.browse(year).id:
 								self.env.cr.execute("update wealth_assets set "+str(year)+" =  "+str(rec.business_name.capital_closing)+" WHERE id = "+str(wealth_assets_line.id)+"")
 			 			for assets in self.wealth_assets_ids:
-			 				if assets.description == rec.business_name.name.name:
+			 				if assets.description == rec.business_name.name.name and assets.business_name_id.id == rec.business_name.name.id:
 								if line.tax_year:
 									year = 'y'+line.tax_year.name
 									# if 'y'+line.tax_year.name == line.browse(year).id:
 									self.env.cr.execute("update wealth_assets set "+str(year)+" =  "+str(rec.business_name.capital_closing)+" WHERE id = "+str(assets.id)+"")
 		############################## Sending Capital Drawing To Receipts in Comparitive Wealth ######################################
-			 			if not self.cash_receipts_ids.search([('description','=','Drawing '+rec.business_name.name.name)]):
+			 			if not self.cash_receipts_ids.search([('description','=','Drawing '+rec.business_name.name.name),('business_name_id','=',rec.business_name.name.id)]):
 							new_reciept = self.cash_receipts_ids.create({
 								'description' : 'Drawing '+rec.business_name.name.name,
 								'receipts_id' : self.id,
+								'business_name_id': rec.business_name.name.id,
 								})
 							if line.tax_year:
 								year = 'y'+line.tax_year.name
@@ -812,16 +814,17 @@ class comparative_wealth(models.Model):
 								self.env.cr.execute("update receipts set "+str(year)+" =  "+str(rec.business_name.capital_drawing)+" WHERE id = "+str(new_reciept.id)+"")
 
 			 			for drawing in self.cash_receipts_ids:
-			 				if drawing.description == 'Drawing '+rec.business_name.name.name:
+			 				if drawing.description == 'Drawing '+rec.business_name.name.name and drawing.business_name_id.id == rec.business_name.name.id:
 								if line.tax_year:
 									year = 'y'+line.tax_year.name
 									# if 'y'+line.tax_year.name == line.browse(year).id:
 									self.env.cr.execute("update receipts set "+str(year)+" =  "+str(rec.business_name.capital_drawing)+" WHERE id = "+str(drawing.id)+"")
 		############################## Sending Capital Introduction To Payments in Comparitive Wealth ######################################
-			 			if not self.cash_payments_ids.search([('description','=','Capital Introduction '+rec.business_name.name.name)]):
+			 			if not self.cash_payments_ids.search([('description','=','Capital Introduction '+rec.business_name.name.name),('business_name_id','=',rec.business_name.name.id)]):
 							new_payment = self.cash_payments_ids.create({
 								'description' : 'Capital Introduction '+rec.business_name.name.name,
 								'payments_id' : self.id,
+								'business_name_id': rec.business_name.name.id,
 								})
 							if line.tax_year:
 								year = 'y'+line.tax_year.name
@@ -829,7 +832,7 @@ class comparative_wealth(models.Model):
 								self.env.cr.execute("update payments set "+str(year)+" =  "+str(rec.business_name.capital_intro)+" WHERE id = "+str(new_payment.id)+"") 			
 
 			 			for payment in self.cash_payments_ids:
-			 				if payment.description == 'Capital Introduction '+rec.business_name.name.name:
+			 				if payment.description == 'Capital Introduction '+rec.business_name.name.name and payment.business_name_id.id == rec.business_name.name.id:
 								if line.tax_year:
 									year = 'y'+line.tax_year.name
 									# if 'y'+line.tax_year.name == line.browse(year).id:

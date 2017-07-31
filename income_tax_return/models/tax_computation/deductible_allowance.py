@@ -9,7 +9,7 @@ class deductible_allowance(models.Model):
 	_name = 'deductible.allowance'
 
 	description = fields.Char()
-	deductible_allowance_ids = fields.Many2one('deductable.allowance','Dedutable Allowance')
+	deductible_allowance_ids = fields.Many2one('deductable.allowance','Deductible Allowance')
 	amount      = fields.Float()
 	ded_allowed        = fields.Float()
 
