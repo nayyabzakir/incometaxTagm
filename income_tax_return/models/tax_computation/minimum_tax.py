@@ -18,4 +18,4 @@ class MinimumTax(models.Model):
 	@api.onchange('sales','rate')
 	def calculate_tax(self):
 		if self.sales and self.rate:
-			self.tax = self.sales * self.rate
+			self.tax = self.sales * (self.rate/100)

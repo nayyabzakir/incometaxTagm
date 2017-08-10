@@ -234,7 +234,8 @@ class comparative_wealth(models.Model):
 					'assets_id' : self.id,
 					'receipts_id': line.id
 					})
-				line.non_cash_receipts.assets = record.id
+				if line.non_cash_receipts:
+					line.non_cash_receipts.assets = record.id
 			record_fields = "y20"
 			for x in xrange(10,25):
 				record_field = record_fields+str(x)  # it starts with y2010 and ends at y2024
@@ -248,6 +249,8 @@ class comparative_wealth(models.Model):
 						if ncr.ncr_year.code <= "20"+str(x):
 							ncr_addition = ncr_addition + ncr.ncr_addition
 							ncr_cash_amount = ncr_cash_amount + ncr.ncr_cash
+							print ncr_cash_amount
+							print "20"+str(x)
 					total_ncr = ncr_addition + ncr_cash_amount
 					AssetsRecord = self.env['wealth.assets'].search([('receipts_id','=',line.id)])
 					CgtRecords = self.env['capital_gain.capital_gain'].search([('assets','=',AssetsRecord.id)])
@@ -699,15 +702,19 @@ class comparative_wealth(models.Model):
 							'payments_id':self.id,
 							'receipts_id':line.id
 							})
-					for rec in line.non_cash_receipts.non_receipt_ids:
-						year = 'y'+str(rec.ncr_year.code)
-						if rec.ncr_year.code:
-							if not old_wealth_record:
-								if 'y'+rec.ncr_year.code == line.browse(year).id:
-									self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(record.id)+"")
-							else:
-								if 'y'+rec.ncr_year.code == line.browse(year).id:
-									self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(old_wealth_record.id)+"")
+						for rec in line.non_cash_receipts.non_receipt_ids:
+							year = 'y'+str(rec.ncr_year.code)
+							if rec.ncr_year.code:
+								if not old_wealth_record:
+									if 'y'+rec.ncr_year.code == line.browse(year).id:
+										self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(record.id)+"")
+					else:
+						for rec in line.non_cash_receipts.non_receipt_ids:
+							year = 'y'+str(rec.ncr_year.code)
+							if rec.ncr_year.code:
+								if old_wealth_record:
+									if 'y'+rec.ncr_year.code == line.browse(year).id:
+										self.env.cr.execute("update payments set "+str(line.browse(year).id)+" =  "+str(rec.ncr_cash)+" WHERE id = "+str(old_wealth_record.id)+"")
 
 ######################################### Delete Capital Gain Whose Assest Is False #############################
 	def delCapitalGain(self):

@@ -242,12 +242,6 @@
                                             <!-- "Receipts Workbook"-END-->
                                             <!-- "Payments Workbook"-START-->
                                                 <group name="receipts" string="Payments">
-                                                    <button
-                                                        type="object"
-                                                        name="upload_assets"
-                                                        string="Upload Assets"
-                                                        class="oe_highlight"
-                                                        help="Push the Assets to Assets field"/>
                                                 </group>
  
 
@@ -422,18 +416,12 @@
                                         <page string="Wealth Statement">
                                             <!-- Workbook-"Assets"-START -->
                                                 <group name="assets" string="Assets">
-                                                    <button
-                                                        type="object"
-                                                        name="button_open_wizard_method"
-                                                        string="Create"
-                                                        class="oe_highlight"
-                                                        help="Finish Order"/>
                                                 </group>
                                                 <field name="wealth_assets_id" attrs="{'invisible': [('all_years', '==', True)]}" nolabel='1'>
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
                                                         <field name="description"/>
-                                                        <field name="opening_assets"/>
+                                                        <!-- <field name="opening_assets"/> -->
                                                         <field name="types"/>
                                                         <field name="y2016" sum="Total"/>
                                                         <field name="y2015" sum="Total"/>
@@ -445,7 +433,7 @@
                                                     <tree editable="bottom">
                                                         <field name="sequence" widget="handle" />
                                                         <field name="description"/>
-                                                        <field name="opening_assets"/>
+                                                        <!-- <field name="opening_assets"/> -->
                                                         <field name="types"/>
 <!--                                                         <field name="y2005" sum="Total"/>
                                                         <field name="y2006" sum="Total"/>
@@ -773,6 +761,7 @@
                                             </group>
                                             <field name="tax_credits_id">
                                                 <tree editable="bottom">
+                                                    <field name="check_min_tax"/>
                                                     <field name="description"/>
                                                     <field name="amount" sum="Total" string="Eilgible Amount"/>
                                                     <field name="rate" string="Applicable Rate"/>
@@ -839,6 +828,7 @@
                                                     <field name="tc_less_property"/> -->
                                                     <field name="tc_ntr"/>
                                                     <field name="tc_tax_liabilty"/>
+                                                    <field name="tax_lib_diff"/>
                                                     <field name="tc_tax_already_ded"/>
                                                     <field name="tc_tax_credits"/>
                                                     <field name="tc_tax_pay_refund"/>
@@ -864,6 +854,7 @@
                                                     <field name="tc_ttl_sbi"/>
                                                     <field name="tc_total_tax_lib"/>
                                                     <field name="tc_ttd_ntr"/>
+                                                    <field name="tc_ttd_ntr_tc"/>
                                                     <field name="tc_ttd_ftr"/>
                                                     <field name="tc_ttd_sbi"/>
                                                     <field name="tc_total_tax_ded"/>
@@ -889,7 +880,17 @@
                                             <group>
                                             </group>
                                         </page>
-
+                                        <page string="Calcualtion Details" colspan="4">
+                                            <group name="calc_details" string="Calculation Details" col="2">
+                                                <field name="cc_profit_los_min_tax"/>
+                                                <field name="cc_tax_deducted_min"/>
+                                                <field name="cc_lib_bahbood"/>
+                                                <field name="cc_actual_liabilty"/>
+                                                <field name="cc_lib_amount"/>
+                                            </group>
+                                            <group>
+                                            </group>
+                                        </page>
                                 </notebook>
                             </sheet>
                         </form>
@@ -1265,7 +1266,7 @@
                                                     <field name="inadmissible_expenses"/>
                                                     <field name="tax_depreciation"/>
                                                     <field name="tax_profit"/>
-                                                    <field name="tax_profit_min"/>
+                                                    <field name="tax_profit_min" invisible="True"/>
                                                 </group>
                                                 <group name="group_right" string="Profit and Loss FTR">
                                                     <field name="ftr_income"/>
@@ -1604,10 +1605,10 @@
                                         <field name="ncr_cash"/>
                                         <!-- <field name="net_amount"/> -->
                                         <!-- <field name="year_purchase"/> -->
-                                        <field name="sale_value"/>
-                                        <field name="purchase_value"/>
-                                        <field name="capital_gain"/>
-                                        <field name="sold_value"/>
+                                        <field name="sale_value" invisible="True"/>
+                                        <field name="purchase_value" invisible="True"/>
+                                        <field name="capital_gain" invisible="True"/>
+                                        <field name="sold_value" invisible="True"/>
                                         <field name="remaining_value"/>
 
                                     </tree>

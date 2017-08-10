@@ -15,7 +15,9 @@ class tax_deduct(models.Model):
         ('adjustable', 'Adjustable'),
         ('minimum', 'Minimum'),
 		('tax_ftr', 'FTR'),
-		('sbi', 'SBI')
+        ('sbi', 'SBI'),
+		('deductible_allowance', ''),
+
         ])
 
 	sub_type = fields.Selection([
@@ -25,6 +27,7 @@ class tax_deduct(models.Model):
             ('oth_sour', 'Other Sources'),
             ('cgtim', 'CGT  (IMV)'),
             ('cgtsec', 'CGT  (Sec)'),
+            ('cgt', ' '),
             ])
 
 	tax_deduct_id = fields.Many2one('tax.computation',

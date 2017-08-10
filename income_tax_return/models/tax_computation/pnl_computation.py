@@ -11,6 +11,13 @@ class business_name(models.Model):
             ('sp', 'Sole Proprietor'),
             ], string="Business Type")
 
+	@api.model
+	def create(self, vals):
+		recs = self.env['business.name'].search([('name','=',vals['name']),('customer','=',vals['customer'])])
+		if recs:
+			raise Warning("Multiple businesses for same client cant be created..!")
+		return super(business_name, self).create(vals)
+
 class pnl_computation(models.Model):
 	_name = 'pnl.computation'
 
@@ -167,7 +174,8 @@ class pnl_computation(models.Model):
 	def getMinTax(self):
 		if self.minimum_tax_ids:
 			for line in self.minimum_tax_ids:
-				line.profit = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * line.sales
+				# line.profit = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * line.sales
+				line.profit = (line.sales / self.ntr_income) * self.tax_profit
 
 	@api.multi
 	def update_opening(self):
