@@ -13,3 +13,4 @@ from . import tax_credits_rates
 from . import separate_block_income
 from . import minimum_tax
 from . import final_tax
+from . import losses

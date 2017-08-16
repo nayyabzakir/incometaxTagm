@@ -12,10 +12,13 @@ class MinimumTax(models.Model):
 	rate 		= fields.Float(string="Rate")
 	profit      = fields.Float(string="Profit")
 	tax 		= fields.Float(string="Tax")
+	adjustment  = fields.Float(string="Adustment")
 	minimum_tax_id = fields.Many2one('pnl.computation',
         ondelete='cascade')
 
-	@api.onchange('sales','rate')
+	@api.onchange('sales','rate','adjustment')
 	def calculate_tax(self):
 		if self.sales and self.rate:
 			self.tax = self.sales * (self.rate/100)
+			
+			# self.profit = self.profit - self.adjustment

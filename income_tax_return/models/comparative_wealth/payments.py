@@ -41,7 +41,9 @@ class payments(models.Model):
         ('adjustable', 'Adjustable'),
         ('minimum', 'Minimum'),
 		('tax_ftr', 'Tax FTR'),
-		('deductible_allowance', 'Deductible Allowance')
+		('deductible_allowance', 'Deductible Allowance'),
+		('sbi','SBI (IMM)'),
+		('sbi_sec','SBI (SEC)')
         ])
 
 	sub_type = fields.Selection([

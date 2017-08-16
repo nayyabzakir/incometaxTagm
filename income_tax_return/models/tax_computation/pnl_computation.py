@@ -175,7 +175,7 @@ class pnl_computation(models.Model):
 		if self.minimum_tax_ids:
 			for line in self.minimum_tax_ids:
 				# line.profit = (self.tax_profit / (self.sale_under_ntr + self.ntr_min_sales)) * line.sales
-				line.profit = (line.sales / self.ntr_income) * self.tax_profit
+				line.profit = ((line.sales / self.ntr_income) * self.tax_profit) - line.adjustment
 
 	@api.multi
 	def update_opening(self):

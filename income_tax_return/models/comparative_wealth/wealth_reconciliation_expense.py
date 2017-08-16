@@ -31,7 +31,9 @@ class wealth_reconciliation_expense(models.Model):
         ('expense', 'Expense'),
         ('minimum', 'Minimum'),
 		('tax_ftr', 'Tax FTR'),
-		('deductible_allowance', 'Deductible Allowance')
+		('deductible_allowance', 'Deductible Allowance'),
+		('sbi','SBI (IMM)'),
+		('sbi_sec','SBI (SEC)')
         ])
 	sequence = fields.Integer(string ='Sequence')
 	_order   = 'sequence'
