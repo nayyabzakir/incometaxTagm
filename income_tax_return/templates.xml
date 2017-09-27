@@ -668,14 +668,15 @@
                                         <field name="comparative_id"/>
                                         <field name="tax_computation" domain="[('client_name','=',client_name)]"/>
                                         <field name="group"/>
+                                        <field name="aop_indv_type"/>
                                         <field name="custom_seq" invisible="1"/>
                                 </group>
                                 <notebook col="4">
                                         <page string="Tax Computation" colspan="4">
                                             <group name="tax_sub_type" string="Tax Computation" col="2">
                                             </group>
-                                            <group name="tax_sub_type_top">
-                                                <group name="tax_sub_type_left">
+                                            <group name="tax_sub_type" col="2">
+                                                <group name="left" string="Tax Income">
                                                     <field name="tc_salary"/>
                                                     <field name="tc_business"/>
                                                     <field name="tc_property"/>
@@ -685,43 +686,84 @@
                                                     <field name="tc_arg_in"/>
                                                     <field name="tc_share_aop"/>
                                                     <field name="tc_total_income"/>
+                                                </group>
+                                                <group name="right"  string="Bahbood">
+                                                    <field name="tc_bahbood"/>
+                                                    <field name="tc_minimum"/>
+                                                    <field name="tc_turnover"/>
+                                                </group>
+                                            </group>
+
+                                            <group name="tax_sub_type" string="NTR Working" col="2">
+                                                <group name="left">
                                                     <field name="tc_less_exempt"/>
                                                     <field name="tc_less_sbi"/>
                                                     <field name="tc_less_ftr"/>
                                                     <field name="tc_ftr_exempt_diff"/>
                                                     <field name="tc_less_ded_allowed"/>
-    <!--                                                 <field name="tc_fe_ded_diff"/>
-                                                    <field name="tc_less_cap_gain"/>
-                                                    <field name="tc_less_property"/> -->
                                                     <field name="tc_ntr"/>
                                                     <field name="tc_tax_liabilty"/>
                                                     <field name="tax_lib_diff"/>
                                                     <field name="tc_tax_already_ded"/>
                                                     <field name="tc_tax_credits"/>
                                                     <field name="tc_tax_pay_refund"/>
+                                                </group>
+                                                <group name="right">
+                                                </group>
+                                            </group>
+
+                                            <group name="tax_sub_type" string="FTR Income" col="2">
+                                                <group name="left">
                                                     <field name="tc_income_charg_uftr"/>
                                                     <field name="tc_tax_charge_ftr"/>
                                                     <field name="tc_tax_deduct_ftr"/>
                                                     <field name="tc_pay_refund_uftr"/>
+                                                </group>
+                                                <group name="right">
+                                                </group>
+                                            </group>
+
+                                            <group name="tax_sub_type" string="Income from Property" col="2">
+                                                <group name="left">
                                                     <field name="tc_income_from_prp"/>
                                                     <field name="tc_taxable_ifd"/>
                                                     <field name="tc_taxable_ifp"/>
                                                     <field name="tc_tax_liability_ifd"/>
                                                     <field name="tc_ifp_ded"/>
                                                     <field name="tc_ifp_pay_refund"/>
+                                                </group>
+                                                <group name="right">
+                                                </group>
+                                            </group>   
+
+                                            <group name="tax_sub_type" string="Capital Gain on Immovable" col="2">
+                                                <group name="left">
                                                     <field name="tc_capital_gain"/>
-                                                    <!-- <field name="tc_exmt_cg"/> -->
                                                     <field name="tc_cgt_ded"/>
                                                     <field name="tc_balnc_taxable"/>
                                                     <field name="tc_tax_pay_cg"/>
                                                     <field name="tc_tax_paid_cg"/>
                                                     <field name="tc_cgt_pay_refund"/>
-                                                     <field name="tc_capital_gain_s"/>
+                                                </group>
+                                                <group name="right">
+                                                </group>
+                                            </group>
+
+                                            <group name="tax_sub_type" string="Capital Gain on Securities" col="2">
+                                                <group name="left">
+                                                    <field name="tc_capital_gain_s"/>
                                                     <field name="tc_cgt_ded_s"/>
                                                     <field name="tc_balnc_taxable_s"/>
                                                     <field name="tc_tax_pay_cg_s"/>
                                                     <field name="tc_tax_paid_cg_s"/>
                                                     <field name="tc_cgt_pay_refund_s"/>
+                                                </group>
+                                                <group name="right">
+                                                </group>
+                                            </group>
+
+                                            <group name="tax_sub_type" string="Tax Deductions" col="2">
+                                                <group name="left">
                                                     <field name="tc_ttl_ntr"/>
                                                     <field name="tc_ttl_ftr"/>
                                                     <field name="tc_ttl_sbi"/>
@@ -732,14 +774,11 @@
                                                     <field name="tc_ttd_sbi"/>
                                                     <field name="tc_total_tax_ded"/>
                                                     <field name="tc_final_pay_refund"/>
-                                                   
+                                                    
                                                 </group>
-                                                <group name="tax_sub_type_right">
-                                                    <field name="tc_bahbood"/>
-                                                    <field name="tc_minimum"/>
-                                                    <field name="tc_turnover"/>
+                                                <group name="right">
                                                 </group>
-                                            </group>
+                                            </group>    
                                         </page>
 <!--                                         <page string="Tax Computation" colspan="4">
                                             <group name="tax_under_ntr" string="Tax under NTR" col="2">

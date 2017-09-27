@@ -115,6 +115,11 @@ class tax_computation(models.Model):
 	cc_lib_amount	= fields.Float('Liability Amount')
 	cc_avg_rate_tax	= fields.Float('Average Rate', digits=(12,6))
 
+	aop_indv_type = fields.Selection([
+		('aop', 'AOP'),
+		('ind', 'Indiviual'),
+		])
+
 	# tc_sca 				= fields.Boolean(string="Senior Citizen Allowance")
 	# tc_fta 				= fields.Boolean(string="Full time Teacher Allowance")
 	# tc_ftc 				= fields.Boolean(string="Foreign Tax Credit")
